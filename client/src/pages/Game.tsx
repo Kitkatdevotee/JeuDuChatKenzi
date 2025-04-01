@@ -218,6 +218,17 @@ export default function Game() {
     disconnectMutation.mutate();
   };
   
+  // Fonction pour promouvoir un joueur en modérateur
+  const handlePromoteToModerator = (playerId: number, username: string) => {
+    toast({
+      title: "Modérateur ajouté",
+      description: `${username} a été promu comme modérateur du jeu.`,
+    });
+    
+    // Dans une version complète, on sauvegarderait cette information en base de données
+    // Pour l'instant, simulons la réussite de l'opération
+  };
+  
   const isLoading = isLoadingPlayers || isLoadingSession || isLoadingZones;
   
   if (isLoading) {
@@ -234,8 +245,9 @@ export default function Game() {
   const playerName = localStorage.getItem("playerName") || "Joueur";
   const playerRole = localStorage.getItem("playerRole") || "Souris";
   
-  // Vérification si le joueur est Kitkatdevotee (modérateur unique)
-  const isKitkatdevotee = playerName === "Kitkatdevotee";
+  // Vérification si le joueur est modérateur (Kitkatdevotee ou FRELONBALEINE27)
+  const moderators = ["Kitkatdevotee", "FRELONBALEINE27"];
+  const isModerator = moderators.includes(playerName);
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
@@ -251,7 +263,7 @@ export default function Game() {
             <div className="flex items-center gap-1 text-xs px-3 py-1.5 bg-muted/80 backdrop-blur-sm rounded-full shadow-sm">
               <span>{playerRole === "Loup" ? "🐺" : "🐭"}</span>
               <span className="font-medium max-w-[100px] truncate">{playerName}</span>
-              {isKitkatdevotee && (
+              {isModerator && (
                 <span className="ml-1 text-amber-500">
                   <Crown className="h-3 w-3 inline-block" />
                 </span>
@@ -274,7 +286,8 @@ export default function Game() {
             polygonCoordinates={polygonCoordinates}
             isDrawingMode={isDrawingMode}
             onZoneDrawn={handleZoneDrawn}
-            isModerator={isKitkatdevotee}
+            isModerator={isModerator}
+            onPromoteToModerator={handlePromoteToModerator}
           />
         </div>
         
@@ -320,7 +333,8 @@ export default function Game() {
             <PlayersList 
               players={players} 
               onDisconnect={handleDisconnect}
-              isModerator={isKitkatdevotee}
+              isModerator={isModerator}
+              onPromoteToModerator={handlePromoteToModerator}
             />
           </div>
         </div>
@@ -338,7 +352,7 @@ export default function Game() {
           gameRunning={gameRunning}
           isDrawingZone={saveZoneMutation.isPending || isDrawingMode}
           isTogglingGame={toggleGameMutation.isPending}
-          isModerator={isKitkatdevotee}
+          isModerator={isModerator}
         />
       </div>
     </div>

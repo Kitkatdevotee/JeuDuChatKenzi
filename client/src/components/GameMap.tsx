@@ -39,6 +39,7 @@ interface GameMapProps {
   isDrawingMode?: boolean;
   onZoneDrawn?: (coordinates: Coordinate[]) => void;
   isModerator?: boolean;
+  onPromoteToModerator?: (playerId: number, username: string) => void;
 }
 
 export default function GameMap({ 
@@ -46,7 +47,8 @@ export default function GameMap({
   polygonCoordinates, 
   isDrawingMode = false, 
   onZoneDrawn,
-  isModerator = false
+  isModerator = false,
+  onPromoteToModerator
 }: GameMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapElementRef = useRef<HTMLDivElement | null>(null);
@@ -318,11 +320,42 @@ export default function GameMap({
           { icon }
         ).addTo(playersLayerRef.current!);
         
+        // Vérifier si le joueur actuel est modérateur
+        const currentPlayerName = localStorage.getItem("playerName") || "";
+        const moderators = ["Kitkatdevotee", "FRELONBALEINE27"];
+        const isCurrentPlayerModerator = moderators.includes(currentPlayerName);
+        const showModeratorControls = isModerator || isCurrentPlayerModerator;
+        
+        // Pour les modérateurs, on ajoute directement un bouton dans le popup HTML
+        const showPromoteButton = showModeratorControls && !moderators.includes(player.username);
+        
         // Popup adaptée au thème
+        const isMod = moderators.includes(player.username);
+        
+        // Ajout d'un gestionnaire d'événements sur le popup pour le bouton de promotion
+        marker.on('popupopen', () => {
+          if (showPromoteButton && onPromoteToModerator) {
+            setTimeout(() => {
+              const promoteBtn = document.getElementById(`promote-${player.id}`);
+              if (promoteBtn) {
+                promoteBtn.addEventListener('click', () => {
+                  onPromoteToModerator(player.id, player.username);
+                  marker.closePopup();
+                });
+              }
+            }, 0);
+          }
+        });
+        
         marker.bindPopup(`
           <div class="dark:bg-gray-800 dark:text-white p-1 rounded text-center">
-            <b>${player.username}</b><br/>
+            <b>${player.username}</b> ${isMod ? '<span class="text-amber-500">👑</span>' : ''}<br/>
             <span class="text-xs">${isWolf ? '🐺 Loup' : '🐭 Souris'}</span>
+            ${showPromoteButton ? `
+              <button id="promote-${player.id}" class="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 px-2 py-1 rounded text-xs mt-2 w-full hover:bg-amber-200 dark:hover:bg-amber-800/40">
+                👑 Promouvoir modérateur
+              </button>
+            ` : ''}
           </div>
         `);
       });

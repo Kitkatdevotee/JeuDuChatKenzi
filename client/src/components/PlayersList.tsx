@@ -23,6 +23,7 @@ interface PlayersListProps {
   players: Player[];
   onDisconnect?: () => void;
   isModerator?: boolean;
+  onPromoteToModerator?: (playerId: number, username: string) => void;
 }
 
 // Tableau de couleurs pour les joueurs
@@ -39,16 +40,24 @@ function getPlayerColor(id: number): string {
   return PLAYER_COLORS[id % PLAYER_COLORS.length];
 }
 
-export default function PlayersList({ players, onDisconnect, isModerator = false }: PlayersListProps) {
+export default function PlayersList({ 
+  players, 
+  onDisconnect, 
+  isModerator = false,
+  onPromoteToModerator
+}: PlayersListProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const currentPlayerId = parseInt(localStorage.getItem("playerId") || "0");
   const currentPlayerName = localStorage.getItem("playerName") || "";
 
-  // Vérifier si le joueur actuel est Kitkatdevotee (modérateur unique)
-  const isKitkatdevotee = currentPlayerName === "Kitkatdevotee";
+  // Liste des modérateurs
+  const moderators = ["Kitkatdevotee", "FRELONBALEINE27"];
+  
+  // Vérifier si le joueur actuel est modérateur
+  const isCurrentPlayerModerator = moderators.includes(currentPlayerName);
   
   // Déterminer si on affiche les contrôles modérateur
-  const showModeratorControls = isModerator || isKitkatdevotee;
+  const showModeratorControls = isModerator || isCurrentPlayerModerator;
 
   // Pour mobile, on permet de réduire/agrandir la liste
   const toggleExpanded = () => {
@@ -129,6 +138,41 @@ export default function PlayersList({ players, onDisconnect, isModerator = false
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
+                    
+                    {/* Bouton d'attribution de modérateur */}
+                    {showModeratorControls && !moderators.includes(player.username) && !isSelf && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5 ml-1"
+                              onClick={() => onPromoteToModerator?.(player.id, player.username)}
+                            >
+                              <Crown className="h-3 w-3 text-amber-500" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p>Promouvoir comme modérateur</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    
+                    {/* Indicateur si c'est déjà un modérateur */}
+                    {moderators.includes(player.username) && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Crown className="h-3 w-3 text-amber-500 ml-1" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p>Modérateur</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                   </div>
                 </li>
               );
