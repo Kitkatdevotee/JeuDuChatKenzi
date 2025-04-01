@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import GameMap from "@/components/GameMap";
 import PlayersList from "@/components/PlayersList";
@@ -46,6 +46,26 @@ export default function Game() {
   
   // État pour le mode dessin de zone
   const [isDrawingMode, setIsDrawingMode] = useState(false);
+  // État pour afficher/masquer les contrôles
+  const [showControls, setShowControls] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const lastScrollTop = useRef(0);
+  
+  // Gestionnaire de défilement pour afficher/masquer les contrôles
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current) return;
+    
+    const st = scrollRef.current.scrollTop;
+    if (st > lastScrollTop.current + 10) {
+      // Défilement vers le bas - masquer les contrôles
+      setShowControls(false);
+    } else if (st < lastScrollTop.current - 10) {
+      // Défilement vers le haut - afficher les contrôles
+      setShowControls(true);
+    }
+    
+    lastScrollTop.current = st <= 0 ? 0 : st;
+  }, []);
   
   // Fetch initial data
   const { isLoading: isLoadingPlayers } = useQuery({
@@ -226,9 +246,9 @@ export default function Game() {
             <span className="text-primary">Jeu du Chat</span>
           </h1>
           
-          <div className="flex items-center gap-2">
-            {/* Info du joueur actuel */}
-            <div className="flex items-center gap-1 text-xs px-2 py-1 bg-muted rounded-md">
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            {/* Info du joueur actuel - centré */}
+            <div className="flex items-center gap-1 text-xs px-3 py-1.5 bg-muted/80 backdrop-blur-sm rounded-full shadow-sm">
               <span>{playerRole === "Loup" ? "🐺" : "🐭"}</span>
               <span className="font-medium max-w-[100px] truncate">{playerName}</span>
               {isKitkatdevotee && (
@@ -237,6 +257,10 @@ export default function Game() {
                 </span>
               )}
             </div>
+          </div>
+          
+          <div className="w-6">
+            {/* Espace pour équilibrer */}
           </div>
         </div>
       </header>
@@ -255,7 +279,10 @@ export default function Game() {
         </div>
         
         {/* Zone informative en dessous de la carte */}
-        <div className="h-2/5 bg-background border-t border-border p-4 flex flex-col space-y-4 overflow-y-auto custom-scrollbar">
+        <div 
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="h-2/5 bg-background border-t border-border p-4 flex flex-col space-y-4 overflow-y-auto custom-scrollbar">
           <h2 className="text-lg font-medium">Informations de jeu</h2>
           
           <div className="grid grid-cols-2 gap-3">
@@ -299,15 +326,21 @@ export default function Game() {
         </div>
       </div>
       
-      {/* Game Controls - Panel du bas adapté au mobile */}
-      <GameControls 
-        onDrawZone={handleDrawZone}
-        onToggleGame={handleToggleGame}
-        gameRunning={gameRunning}
-        isDrawingZone={saveZoneMutation.isPending || isDrawingMode}
-        isTogglingGame={toggleGameMutation.isPending}
-        isModerator={isKitkatdevotee}
-      />
+      {/* Game Controls - Panel du bas adapté au mobile avec animation */}
+      <div className={`transition-all duration-300 ${
+        showControls 
+          ? "opacity-100 translate-y-0" 
+          : "opacity-0 translate-y-full pointer-events-none"
+      }`}>
+        <GameControls 
+          onDrawZone={handleDrawZone}
+          onToggleGame={handleToggleGame}
+          gameRunning={gameRunning}
+          isDrawingZone={saveZoneMutation.isPending || isDrawingMode}
+          isTogglingGame={toggleGameMutation.isPending}
+          isModerator={isKitkatdevotee}
+        />
+      </div>
     </div>
   );
 }
