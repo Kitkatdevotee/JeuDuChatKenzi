@@ -3,10 +3,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  // Détermine le thème initial en fonction des préférences système
-  const [theme, setTheme] = useState<"light" | "dark">(
-    () => (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-  );
+  // Utilise le thème sombre par défaut
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   // Bascule entre les thèmes
   const toggleTheme = () => {
@@ -22,12 +20,15 @@ export function ThemeToggle() {
 
   return (
     <Button 
-      variant="ghost" 
+      variant="secondary" 
       size="icon" 
       onClick={toggleTheme}
-      className="fixed bottom-4 right-4 z-50 rounded-full w-10 h-10"
+      className="fixed top-6 right-6 z-50 rounded-full w-12 h-12 bg-background/80 backdrop-blur-sm shadow-lg border border-border"
     >
-      {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+      {theme === "light" ? 
+        <Moon className="h-6 w-6 text-primary" /> : 
+        <Sun className="h-6 w-6 text-yellow-400" />
+      }
       <span className="sr-only">Changer de thème</span>
     </Button>
   );

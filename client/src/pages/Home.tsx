@@ -82,8 +82,7 @@ export default function Home() {
         </Card>
       </div>
       
-      {/* Bouton de changement de thème */}
-      <ThemeToggle />
+      {/* Le bouton de changement de thème est maintenant géré globalement */}
       
       <footer className="mt-6 text-center flex flex-col items-center space-y-2 pb-6">
         <div className="kitmars-credit font-bold tracking-wider pulse-red text-lg">
