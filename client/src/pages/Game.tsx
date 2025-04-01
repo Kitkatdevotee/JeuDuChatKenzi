@@ -143,7 +143,7 @@ export default function Game() {
   return (
     <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       {/* Header plus compact pour mobile */}
-      <header className="bg-background border-b border-border p-3 shadow-sm">
+      <header className="bg-background border-b border-border p-3 shadow-sm z-10">
         <div className="flex justify-between items-center">
           <h1 className="text-lg font-semibold flex items-center gap-1.5">
             <span className="text-primary">Jeu du Chat</span>
@@ -159,14 +159,55 @@ export default function Game() {
         </div>
       </header>
       
-      {/* Map Container - Plein écran pour mobile */}
-      <div className="flex-1 relative">
-        <GameMap 
-          players={players}
-          polygonCoordinates={polygonCoordinates}
-        />
+      {/* Interface divisée avec carte en haut */}
+      <div className="flex-1 flex flex-col relative">
+        {/* Map Container - Seulement en haut */}
+        <div className="h-3/5 relative">
+          <GameMap 
+            players={players}
+            polygonCoordinates={polygonCoordinates}
+          />
+        </div>
         
-        <PlayersList players={players} />
+        {/* Zone informative en dessous de la carte */}
+        <div className="h-2/5 bg-background border-t border-border p-4 flex flex-col space-y-4 overflow-y-auto">
+          <h2 className="text-lg font-medium">Informations de jeu</h2>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <h3 className="text-sm font-medium mb-1">Statut</h3>
+              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
+                gameRunning 
+                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" 
+                  : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+              }`}>
+                <span className={`h-1.5 w-1.5 mr-1.5 rounded-full ${
+                  gameRunning 
+                    ? "bg-green-500 animate-pulse" 
+                    : "bg-amber-500"
+                }`}></span>
+                {gameRunning ? "Partie en cours" : "En attente"}
+              </div>
+            </div>
+            
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <h3 className="text-sm font-medium mb-1">Joueurs</h3>
+              <div className="flex gap-2">
+                <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded-full">
+                  🐭 {players.filter(p => p.role === "Souris").length}
+                </span>
+                <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 rounded-full">
+                  🐺 {players.filter(p => p.role === "Loup").length}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Liste des joueurs intégrée */}
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <PlayersList players={players} />
+          </div>
+        </div>
       </div>
       
       {/* Game Controls - Panel du bas adapté au mobile */}

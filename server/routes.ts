@@ -43,13 +43,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = validatePlayerSchema.parse(req.body);
       const existingPlayer = await storage.getPlayerByUsername(validatedData.username);
       
+      // Si le joueur existe mais est inactif, permettre la réutilisation du pseudo
       if (existingPlayer) {
-        return res.status(409).json({ message: 'Player with this username already exists' });
+        if (!existingPlayer.isActive) {
+          // Réactiver le joueur avec les nouvelles informations
+          const updatedPlayer = await storage.updatePlayerStatus(existingPlayer.id, true);
+          
+          if (updatedPlayer) {
+            // Mise à jour de la position si elle a changé
+            if (validatedData.latitude !== updatedPlayer.latitude || 
+                validatedData.longitude !== updatedPlayer.longitude) {
+              await storage.updatePlayerPosition(
+                updatedPlayer.id, 
+                validatedData.latitude, 
+                validatedData.longitude
+              );
+            }
+            
+            // Broadcast à tous les clients
+            broadcastUpdate({
+              type: 'PLAYER_REJOINED',
+              data: updatedPlayer
+            });
+            
+            return res.status(200).json(updatedPlayer);
+          }
+        } else {
+          // Si le joueur est actif, renvoyer une erreur
+          return res.status(409).json({ message: 'Player with this username already exists' });
+        }
       }
       
+      // Créer un nouveau joueur
       const player = await storage.createPlayer(validatedData);
       
-      // Broadcast to all clients
+      // Broadcast à tous les clients
       broadcastUpdate({
         type: 'PLAYER_JOINED',
         data: player
@@ -89,6 +117,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(player);
     } catch (error) {
       res.status(500).json({ message: 'Error updating player position' });
+    }
+  });
+  
+  // Déconnecter un joueur (marquer comme inactif)
+  app.patch('/api/players/:id/disconnect', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      const player = await storage.deactivatePlayer(id);
+      
+      if (!player) {
+        return res.status(404).json({ message: 'Player not found' });
+      }
+      
+      // Broadcast to all clients
+      broadcastUpdate({
+        type: 'PLAYER_DISCONNECTED',
+        data: player
+      });
+      
+      res.json(player);
+    } catch (error) {
+      res.status(500).json({ message: 'Error disconnecting player' });
+    }
+  });
+  
+  // Get active players only
+  app.get('/api/players/active', async (req, res) => {
+    try {
+      const players = await storage.getActivePlayers();
+      res.json(players);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching active players' });
     }
   });
   

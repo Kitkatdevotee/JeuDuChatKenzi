@@ -14,6 +14,9 @@ export interface IStorage {
   createPlayer(player: InsertPlayer): Promise<Player>;
   updatePlayerPosition(id: number, latitude: string, longitude: string): Promise<Player | undefined>;
   updatePlayerRole(id: number, role: string): Promise<Player | undefined>;
+  updatePlayerStatus(id: number, isActive: boolean): Promise<Player | undefined>;
+  deactivatePlayer(id: number): Promise<Player | undefined>;
+  getActivePlayers(): Promise<Player[]>;
   
   // Game zone operations
   getGameZones(): Promise<GameZone[]>;
@@ -90,6 +93,23 @@ export class MemStorage implements IStorage {
     const updatedPlayer = { ...player, role };
     this.players.set(id, updatedPlayer);
     return updatedPlayer;
+  }
+  
+  async updatePlayerStatus(id: number, isActive: boolean): Promise<Player | undefined> {
+    const player = this.players.get(id);
+    if (!player) return undefined;
+    
+    const updatedPlayer = { ...player, isActive };
+    this.players.set(id, updatedPlayer);
+    return updatedPlayer;
+  }
+  
+  async deactivatePlayer(id: number): Promise<Player | undefined> {
+    return this.updatePlayerStatus(id, false);
+  }
+  
+  async getActivePlayers(): Promise<Player[]> {
+    return Array.from(this.players.values()).filter(player => player.isActive);
   }
 
   // Game zone methods
