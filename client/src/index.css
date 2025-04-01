@@ -16,16 +16,19 @@
     touch-action: manipulation;
   }
 
-  /* Format portrait avec ratio 6:9 (2:3) forcé même sur desktop */
   #root {
-    @apply mx-auto;
-    width: 720px; /* Largeur 6 unités */
-    height: 1080px; /* Hauteur 9 unités */
-    max-height: 100vh;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    @apply w-screen h-screen;
     position: relative;
     display: flex;
     flex-direction: column;
+  }
+
+  .game-overlay {
+    @apply fixed inset-0 z-10 pointer-events-none;
+  }
+
+  .game-overlay > * {
+    @apply pointer-events-auto;
   }
 
   /* Couleur des crédits KitMars studio */
