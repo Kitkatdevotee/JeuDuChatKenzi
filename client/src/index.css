@@ -7,15 +7,30 @@
     @apply border-border;
   }
 
+  html {
+    @apply h-full;
+  }
+
   body {
     @apply font-sans antialiased bg-background text-foreground overflow-x-hidden min-h-screen;
     touch-action: manipulation;
   }
 
-  /* Optimisations pour écrans mobiles en format portrait */
-  html, body {
-    @apply max-w-[100vw];
-    overscroll-behavior: none;
+  /* Format portrait forcé même sur desktop */
+  #root {
+    @apply mx-auto h-full;
+    max-width: 480px;
+    min-height: 100vh;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Couleur des crédits KitMars studio */
+  .kitmars-credit {
+    color: #ff5a5f;
+    text-shadow: 0 0 5px rgba(255, 90, 95, 0.3);
   }
 
   /* Variables de couleurs pour thème sombre */
@@ -24,38 +39,57 @@
   }
   
   .dark {
-    --map-background: rgba(30, 30, 30, 0.8);
+    --map-background: rgba(20, 20, 20, 0.9);
   }
 }
 
 @layer components {
-  /* Composants adaptés aux mobiles */
+  /* Composants pour interface mobile */
   .mobile-panel {
     @apply fixed bottom-0 left-0 right-0 p-4 rounded-t-lg z-10;
-    @apply bg-background border-t border-border shadow-lg;
-    @apply dark:bg-background dark:border-border;
+    @apply bg-background/95 backdrop-blur-sm border-t border-border shadow-lg;
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
   }
 
   .player-list {
     @apply absolute top-4 right-4 p-3 rounded-lg z-10;
     @apply bg-background/90 backdrop-blur-sm border border-border shadow-md;
-    @apply dark:bg-background/80 dark:border-border;
     max-height: calc(100vh - 8rem);
     overflow-y: auto;
-    max-width: min(90vw, 18rem);
+    max-width: min(85vw, 18rem);
   }
   
-  /* Style pour la carte avec support du thème */
+  /* Style pour la carte avec support du thème sombre par défaut */
   .leaflet-container {
     height: 100%;
     width: 100%;
+    background: #1e1e1e;
   }
   
-  .dark .leaflet-tile {
+  .leaflet-tile {
     filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
   }
   
-  .dark .leaflet-container {
-    background: #303030;
+  .leaflet-container {
+    background: #1e1e1e;
+  }
+
+  /* Animations et effets */
+  .pulse-red {
+    animation: pulse-red 2s infinite;
+  }
+
+  @keyframes pulse-red {
+    0% {
+      box-shadow: 0 0 0 0 rgba(255, 90, 95, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(255, 90, 95, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(255, 90, 95, 0);
+    }
   }
 }

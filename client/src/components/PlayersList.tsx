@@ -58,36 +58,45 @@ export default function PlayersList({ players }: PlayersListProps) {
       </div>
       
       {isExpanded && (
-        <ul className="space-y-1.5 max-h-[30vh] overflow-y-auto pr-1">
-          {players.map(player => (
-            <li 
-              key={player.id} 
-              className="flex items-center justify-between p-2 bg-background/70 rounded-md border border-border text-sm"
-            >
-              <div className="flex items-center">
-                <span 
-                  className={`w-2 h-2 rounded-full mr-2 ${
-                    player.role === "Loup" ? "bg-red-500" : "bg-green-500"
-                  }`}
-                ></span>
-                <span className="font-medium truncate max-w-[7rem]">{player.username}</span>
-              </div>
-              
-              <Badge 
-                variant={player.role === "Loup" ? "destructive" : "secondary"}
-                className="text-[0.65rem] h-5"
+        <div className="space-y-1.5">
+          <ul className="space-y-1.5 max-h-[30vh] overflow-y-auto pr-1">
+            {players.map(player => (
+              <li 
+                key={player.id} 
+                className="flex items-center justify-between p-2 bg-background/70 rounded-md border border-border text-sm"
               >
-                {player.role === "Loup" ? "🐺 Loup" : "🐭 Souris"}
-              </Badge>
-            </li>
-          ))}
+                <div className="flex items-center">
+                  <span 
+                    className={`w-2 h-2 rounded-full mr-2 ${
+                      player.role === "Loup" ? "bg-red-500" : "bg-green-500"
+                    }`}
+                  ></span>
+                  <span className="font-medium truncate max-w-[7rem]">{player.username}</span>
+                </div>
+                
+                <Badge 
+                  variant={player.role === "Loup" ? "destructive" : "secondary"}
+                  className="text-[0.65rem] h-5"
+                >
+                  {player.role === "Loup" ? "🐺 Loup" : "🐭 Souris"}
+                </Badge>
+              </li>
+            ))}
+            
+            {players.length === 0 && (
+              <li className="text-sm text-muted-foreground text-center py-3 italic">
+                Aucun joueur connecté
+              </li>
+            )}
+          </ul>
           
-          {players.length === 0 && (
-            <li className="text-sm text-muted-foreground text-center py-3 italic">
-              Aucun joueur connecté
-            </li>
-          )}
-        </ul>
+          {/* Crédits KitMars studio */}
+          <div className="text-center pt-2 border-t border-border mt-2">
+            <span className="kitmars-credit text-xs font-medium">
+              KitMars studio
+            </span>
+          </div>
+        </div>
       )}
     </div>
   );
