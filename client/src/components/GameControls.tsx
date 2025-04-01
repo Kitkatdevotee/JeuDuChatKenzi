@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { MapPinned, Play, Square, Loader2 } from "lucide-react";
 
 interface GameControlsProps {
   onDrawZone: () => void;
@@ -16,49 +17,66 @@ export default function GameControls({
   isTogglingGame
 }: GameControlsProps) {
   return (
-    <div className="bg-white border-t border-gray-200 p-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
-          <Button
-            onClick={onDrawZone}
-            disabled={isDrawingZone}
-            className="flex-1 py-2 px-4 bg-primary text-white font-medium rounded-md shadow hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-          >
-            {isDrawingZone ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Dessin...
-              </div>
-            ) : (
-              <>
-                <i className="fas fa-draw-polygon mr-2"></i> Dessiner Zone
-              </>
-            )}
-          </Button>
-          
-          <Button
-            onClick={onToggleGame}
-            disabled={isTogglingGame}
-            className={`flex-1 py-2 px-4 ${
-              gameRunning 
-                ? "bg-red-500 hover:bg-red-600" 
-                : "bg-green-500 hover:bg-green-600"
-            } text-white font-medium rounded-md shadow transition focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
-              gameRunning ? "focus:ring-red-500" : "focus:ring-green-500"
-            }`}
-          >
-            {isTogglingGame ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Chargement...
-              </div>
-            ) : (
-              <>
-                <i className={`fas ${gameRunning ? "fa-stop" : "fa-play"} mr-2`}></i>
-                {gameRunning ? "Arrêter le jeu" : "Démarrer le jeu"}
-              </>
-            )}
-          </Button>
+    <div className="mobile-panel">
+      <div className="grid grid-cols-2 gap-3">
+        <Button
+          onClick={onDrawZone}
+          disabled={isDrawingZone}
+          variant="outline"
+          size="lg"
+          className="h-14 text-base relative"
+        >
+          {isDrawingZone ? (
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Création...</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2">
+              <MapPinned className="h-4 w-4" />
+              <span>Définir Zone</span>
+            </div>
+          )}
+        </Button>
+        
+        <Button
+          onClick={onToggleGame}
+          disabled={isTogglingGame}
+          variant={gameRunning ? "destructive" : "default"}
+          size="lg"
+          className="h-14 text-base relative"
+        >
+          {isTogglingGame ? (
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Changement...</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2">
+              {gameRunning ? (
+                <Square className="h-4 w-4" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
+              <span>{gameRunning ? "Arrêter" : "Démarrer"}</span>
+            </div>
+          )}
+        </Button>
+      </div>
+      
+      {/* Indicateur de statut du jeu */}
+      <div className="mt-3 text-center">
+        <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs ${
+          gameRunning 
+            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" 
+            : "bg-muted text-muted-foreground"
+        }`}>
+          <span className={`h-1.5 w-1.5 mr-1.5 rounded-full ${
+            gameRunning 
+              ? "bg-green-500 animate-pulse" 
+              : "bg-muted-foreground"
+          }`}></span>
+          {gameRunning ? "Jeu en cours" : "Jeu en attente de démarrage"}
         </div>
       </div>
     </div>

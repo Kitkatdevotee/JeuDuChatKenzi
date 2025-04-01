@@ -8,6 +8,54 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-background text-foreground overflow-x-hidden min-h-screen;
+    touch-action: manipulation;
+  }
+
+  /* Optimisations pour écrans mobiles en format portrait */
+  html, body {
+    @apply max-w-[100vw];
+    overscroll-behavior: none;
+  }
+
+  /* Variables de couleurs pour thème sombre */
+  :root {
+    --map-background: rgba(255, 255, 255, 0.8);
+  }
+  
+  .dark {
+    --map-background: rgba(30, 30, 30, 0.8);
+  }
+}
+
+@layer components {
+  /* Composants adaptés aux mobiles */
+  .mobile-panel {
+    @apply fixed bottom-0 left-0 right-0 p-4 rounded-t-lg z-10;
+    @apply bg-background border-t border-border shadow-lg;
+    @apply dark:bg-background dark:border-border;
+  }
+
+  .player-list {
+    @apply absolute top-4 right-4 p-3 rounded-lg z-10;
+    @apply bg-background/90 backdrop-blur-sm border border-border shadow-md;
+    @apply dark:bg-background/80 dark:border-border;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    max-width: min(90vw, 18rem);
+  }
+  
+  /* Style pour la carte avec support du thème */
+  .leaflet-container {
+    height: 100%;
+    width: 100%;
+  }
+  
+  .dark .leaflet-tile {
+    filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+  }
+  
+  .dark .leaflet-container {
+    background: #303030;
   }
 }

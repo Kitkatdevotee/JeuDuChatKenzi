@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { User, LogIn } from "lucide-react";
 
 interface PseudoFormProps {
   onSubmit: (username: string) => void;
@@ -31,46 +32,57 @@ export default function PseudoForm({ onSubmit, isLoading }: PseudoFormProps) {
   };
   
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="pseudo" className="block text-sm font-medium text-gray-700 mb-1">
-          Pseudo
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-2">
+        <Label htmlFor="pseudo" className="text-sm font-medium flex items-center">
+          <User className="w-4 h-4 mr-1.5" />
+          Choix du pseudo
         </Label>
-        <Input
-          id="pseudo"
-          value={pseudo}
-          onChange={handlePseudoChange}
-          placeholder="Entrez un pseudo (4-16 caractères)"
-          maxLength={16}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
-        />
-        <p 
-          className={`text-xs mt-1 ${
-            pseudo.length > 0 
-              ? (isPseudoValid ? "text-green-600" : "text-red-500") 
-              : "text-gray-500"
-          }`}
-        >
-          {pseudo.length > 0 && isPseudoValid 
-            ? "Pseudo valide !" 
-            : "Le pseudo doit contenir entre 4 et 16 caractères"}
-        </p>
+        
+        <div className="relative">
+          <Input
+            id="pseudo"
+            value={pseudo}
+            onChange={handlePseudoChange}
+            placeholder="Entrez votre pseudo"
+            maxLength={16}
+            autoComplete="off"
+            className="pl-3 pr-3 py-5 w-full text-base"
+            autoFocus
+            autoCapitalize="off"
+            type="text"
+          />
+        </div>
+        
+        <div className="flex justify-between items-center text-xs px-1">
+          <span className={`${
+            isPseudoValid ? "text-green-500 dark:text-green-400" : "text-muted-foreground"
+          }`}>
+            {isPseudoValid ? "✓ Pseudo valide" : "Entre 4 et 16 caractères"}
+          </span>
+          <span className={`${pseudo.length > 0 ? "text-primary" : "text-muted-foreground"}`}>
+            {pseudo.length}/16
+          </span>
+        </div>
       </div>
       
       <Button
         type="submit"
         disabled={!isPseudoValid || isLoading}
-        className={`w-full py-2 px-4 ${
-          isPseudoValid ? "bg-primary hover:bg-blue-600" : "bg-gray-400"
-        } text-white font-medium rounded-md shadow transition disabled:opacity-70 disabled:cursor-not-allowed`}
+        className="w-full py-6 text-base font-medium"
+        variant={isPseudoValid ? "default" : "secondary"}
+        size="lg"
       >
         {isLoading ? (
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-            Chargement...
+          <div className="flex items-center justify-center gap-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+            <span>Connexion en cours...</span>
           </div>
         ) : (
-          "Commencer le jeu"
+          <div className="flex items-center justify-center gap-2">
+            <LogIn className="w-4 h-4" />
+            <span>Entrer dans le jeu</span>
+          </div>
         )}
       </Button>
     </form>

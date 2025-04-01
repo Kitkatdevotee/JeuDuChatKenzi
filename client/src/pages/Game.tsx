@@ -137,30 +137,29 @@ export default function Game() {
     );
   }
   
+  const playerName = localStorage.getItem("playerName") || "Joueur";
+  const playerRole = localStorage.getItem("playerRole") || "Souris";
+
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header */}
-      <header className="bg-white shadow-sm p-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-semibold text-gray-800">Jeu du Chat</h1>
-          <div className="flex items-center space-x-2">
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              gameRunning 
-                ? "bg-green-100 text-green-800" 
-                : "bg-gray-100 text-gray-800"
-            }`}>
-              <span className={`h-2 w-2 mr-1 rounded-full ${
-                gameRunning 
-                  ? "bg-green-500 animate-pulse" 
-                  : "bg-gray-400"
-              }`}></span>
-              {gameRunning ? "En cours" : "En attente"}
-            </span>
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
+      {/* Header plus compact pour mobile */}
+      <header className="bg-background border-b border-border p-3 shadow-sm">
+        <div className="flex justify-between items-center">
+          <h1 className="text-lg font-semibold flex items-center gap-1.5">
+            <span className="text-primary">Jeu du Chat</span>
+          </h1>
+          
+          <div className="flex items-center gap-2">
+            {/* Info du joueur actuel */}
+            <div className="flex items-center gap-1 text-xs px-2 py-1 bg-muted rounded-md">
+              <span>{playerRole === "Loup" ? "🐺" : "🐭"}</span>
+              <span className="font-medium max-w-[100px] truncate">{playerName}</span>
+            </div>
           </div>
         </div>
       </header>
       
-      {/* Map Container */}
+      {/* Map Container - Plein écran pour mobile */}
       <div className="flex-1 relative">
         <GameMap 
           players={players}
@@ -170,7 +169,7 @@ export default function Game() {
         <PlayersList players={players} />
       </div>
       
-      {/* Game Controls */}
+      {/* Game Controls - Panel du bas adapté au mobile */}
       <GameControls 
         onDrawZone={handleDrawZone}
         onToggleGame={handleToggleGame}
