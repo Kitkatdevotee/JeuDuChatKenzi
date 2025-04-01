@@ -124,6 +124,34 @@ export default function Game() {
     toggleGameMutation.mutate();
   };
   
+  // Déconnexion du joueur
+  const disconnectMutation = useMutation({
+    mutationFn: async () => {
+      if (!playerId) return null;
+      
+      const response = await apiRequest("PATCH", `/api/players/${playerId}/disconnect`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      // Nettoyer les données locales
+      localStorage.removeItem("playerId");
+      localStorage.removeItem("playerName");
+      localStorage.removeItem("playerRole");
+      
+      // Rediriger vers la page d'accueil
+      toast({
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté du jeu"
+      });
+      
+      navigate("/");
+    }
+  });
+  
+  const handleDisconnect = () => {
+    disconnectMutation.mutate();
+  };
+  
   const isLoading = isLoadingPlayers || isLoadingSession;
   
   if (isLoading) {
@@ -205,7 +233,10 @@ export default function Game() {
           
           {/* Liste des joueurs intégrée */}
           <div className="flex-1 min-h-0 overflow-y-auto">
-            <PlayersList players={players} />
+            <PlayersList 
+              players={players} 
+              onDisconnect={handleDisconnect} 
+            />
           </div>
         </div>
       </div>

@@ -175,16 +175,28 @@ export default function GameMap({ players, polygonCoordinates }: GameMapProps) {
       // Clear existing markers
       playersLayerRef.current.clearLayers();
       
+      // Couleurs pour les joueurs
+      const getPlayerColor = (id: number): string => {
+        const PLAYER_COLORS = [
+          "#ff7e5f", "#feb47b", "#ffae4a", "#f7c59f", 
+          "#9be7ff", "#66e0ff", "#32a1ff", "#0055ff",
+          "#b2fab4", "#85ef8f", "#5ae361", "#38c938",
+          "#d783ff", "#ad54ff", "#8429ff", "#6c0aef",
+          "#ff77a8", "#ff4d94", "#ff1d79", "#e5005e"
+        ];
+        return PLAYER_COLORS[id % PLAYER_COLORS.length];
+      };
+      
       // Add player markers
       players.forEach(player => {
         const isWolf = player.role === "Loup";
+        const playerColor = getPlayerColor(player.id);
         
         // Style adapté au thème (clair/sombre)
         const icon = L.divIcon({
           className: 'custom-div-icon',
-          html: `<div class="marker-pin ${
-            isWolf ? 'bg-red-500 dark:bg-red-600' : 'bg-green-500 dark:bg-green-600'
-          } shadow-lg flex items-center justify-center text-white rounded-full w-8 h-8 border-2 border-white dark:border-gray-800">
+          html: `<div class="marker-pin shadow-lg flex items-center justify-center text-white rounded-full w-8 h-8 border-2 border-white dark:border-gray-800"
+                      style="background-color: ${playerColor}">
                   <span>${isWolf ? '🐺' : '🐭'}</span>
                  </div>`,
           iconSize: [32, 32],
