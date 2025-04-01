@@ -80,6 +80,29 @@ export default function Game() {
       return;
     }
     
+    // Force fullscreen
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+    }
+    
+    // Prevent sleep
+    const wakeLock = async () => {
+      try {
+        // @ts-ignore - WakeLock API
+        const wakeLock = await navigator.wakeLock.request('screen');
+      } catch (err) {
+        console.log('Wake Lock not supported');
+      }
+    };
+    wakeLock();
+    
+    // Cleanup
+    return () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+    };
+    
     // WebSocket functionality temporarily disabled for basic functionality testing
     console.log("WebSocket functionality disabled for testing basic app functionality");
     

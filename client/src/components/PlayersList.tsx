@@ -35,7 +35,7 @@ function getPlayerColor(player: Player): string {
   if (player.color) {
     return player.color;
   }
-  
+
   // Sinon, utiliser la couleur par défaut basée sur l'ID
   return PLAYER_COLORS[player.id % PLAYER_COLORS.length];
 }
@@ -52,10 +52,10 @@ export default function PlayersList({
 
   // Liste des modérateurs
   const moderators = ["Kitkatdevotee", "FRELONBALEINE27"];
-  
+
   // Vérifier si le joueur actuel est modérateur
   const isCurrentPlayerModerator = moderators.includes(currentPlayerName);
-  
+
   // Déterminer si on affiche les contrôles modérateur
   const showModeratorControls = isModerator || isCurrentPlayerModerator;
 
@@ -71,7 +71,7 @@ export default function PlayersList({
           <UsersRound className="w-4 h-4 text-primary" />
           <h3 className="font-medium text-sm">Liste des joueurs ({players.length})</h3>
         </div>
-        
+
         <Button 
           variant="ghost" 
           size="icon" 
@@ -81,14 +81,14 @@ export default function PlayersList({
           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </Button>
       </div>
-      
+
       {isExpanded && (
         <>
           <ul className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
             {players.map(player => {
               const playerColor = getPlayerColor(player);
               const isSelf = player.id === currentPlayerId;
-              
+
               return (
                 <li 
                   key={player.id} 
@@ -112,13 +112,13 @@ export default function PlayersList({
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                    
+
                     <span className="font-medium truncate max-w-[7rem]">
                       {player.username}
                       {isSelf && <span className="text-xs ml-1 opacity-70">(vous)</span>}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-1">
                     <Badge 
                       variant={player.role === "Loup" ? "destructive" : "secondary"}
@@ -126,7 +126,7 @@ export default function PlayersList({
                     >
                       {player.role === "Loup" ? "🐺 Loup" : "🐭 Souris"}
                     </Badge>
-                    
+
                     {/* Indicateur de géolocalisation */}
                     <TooltipProvider>
                       <Tooltip>
@@ -138,7 +138,7 @@ export default function PlayersList({
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                    
+
                     {/* Bouton d'attribution de modérateur */}
                     {showModeratorControls && !moderators.includes(player.username) && !isSelf && (
                       <TooltipProvider>
@@ -159,7 +159,7 @@ export default function PlayersList({
                         </Tooltip>
                       </TooltipProvider>
                     )}
-                    
+
                     {/* Indicateur si c'est déjà un modérateur */}
                     {moderators.includes(player.username) && (
                       <TooltipProvider>
@@ -177,14 +177,14 @@ export default function PlayersList({
                 </li>
               );
             })}
-            
+
             {players.length === 0 && (
               <li className="text-sm text-muted-foreground text-center py-3 italic">
                 Aucun joueur connecté
               </li>
             )}
           </ul>
-          
+
           {/* Section modérateur */}
           {showModeratorControls && (
             <div className="mt-4 border-t border-border pt-4 mb-4">
@@ -192,7 +192,7 @@ export default function PlayersList({
                 <Crown className="w-4 h-4 text-amber-500 mr-2" />
                 <h3 className="text-sm font-medium">Contrôles Modérateur</h3>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <Button 
                   variant="outline" 
@@ -202,7 +202,7 @@ export default function PlayersList({
                   <Play className="h-3.5 w-3.5 text-green-500" />
                   <span className="text-xs">Démarrer jeu</span>
                 </Button>
-                
+
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -212,7 +212,7 @@ export default function PlayersList({
                   <span className="text-xs">Arrêter jeu</span>
                 </Button>
               </div>
-              
+
               <Button 
                 variant="secondary" 
                 size="sm" 
@@ -221,7 +221,7 @@ export default function PlayersList({
                 <Zap className="h-4 w-4 text-amber-500" />
                 <span>Définir la zone de jeu</span>
               </Button>
-              
+
               <Button 
                 variant="secondary" 
                 size="sm" 
@@ -230,7 +230,7 @@ export default function PlayersList({
                 <UserCog className="h-4 w-4" />
                 <span>Gérer les rôles</span>
               </Button>
-              
+
               <div className="text-center mt-3 mb-1">
                 <Badge variant="outline" className="bg-primary/5">
                   <Crown className="w-3 h-3 text-amber-500 mr-1" />
@@ -239,7 +239,7 @@ export default function PlayersList({
               </div>
             </div>
           )}
-          
+
           {/* Bouton déconnecter */}
           <div className={`${showModeratorControls ? "" : "mt-4 border-t border-border pt-4"}`}>
             <Button 

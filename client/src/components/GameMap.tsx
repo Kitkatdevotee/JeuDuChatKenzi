@@ -494,10 +494,49 @@ export default function GameMap({
   // Function to start drawing mode
   const handleStartDrawing = () => {
     setIsDrawing(true);
+    let points: Coordinate[] = [];
 
     if (mapRef.current && drawnItemsRef.current) {
       // Clear previous drawings
       drawnItemsRef.current.clearLayers();
+      
+      // Simplified click-based drawing
+      const clickHandler = (e: L.LeafletMouseEvent) => {
+        const { lat, lng } = e.latlng;
+        points.push({ latitude: lat, longitude: lng });
+        
+        // Draw point marker
+        L.circleMarker([lat, lng], {
+          radius: 5,
+          color: '#3b82f6'
+        }).addTo(drawnItemsRef.current!);
+        
+        // Draw lines between points
+        if (points.length > 1) {
+          const lastTwo = points.slice(-2);
+          L.polyline(lastTwo.map(p => [p.latitude, p.longitude]), {
+            color: '#3b82f6'
+          }).addTo(drawnItemsRef.current!);
+        }
+        
+        // Complete polygon on double click
+        if (e.originalEvent.detail === 2 && points.length >= 3) {
+          mapRef.current?.off('click', clickHandler);
+          setDrawnPolygon(points);
+          setHasDrawnPolygon(true);
+          setIsDrawing(false);
+          
+          // Close the polygon
+          L.polyline([
+            [points[points.length-1].latitude, points[points.length-1].longitude],
+            [points[0].latitude, points[0].longitude]
+          ], {
+            color: '#3b82f6'
+          }).addTo(drawnItemsRef.current!);
+        }
+      };
+      
+      mapRef.current.on('click', clickHandler);
 
       // Remove any existing zone highlight
       if (zoneLayerRef.current) {

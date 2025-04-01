@@ -4,6 +4,8 @@ import { MapPinned, Play, Square, Loader2, MousePointer, UserCog } from "lucide-
 interface GameControlsProps {
   onDrawZone: () => void;
   onToggleGame: () => void;
+  onCatchMouse: () => void;
+  onKickPlayer: (playerId: number) => void;
   gameRunning: boolean;
   isDrawingZone: boolean;
   isTogglingGame: boolean;

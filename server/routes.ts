@@ -9,15 +9,21 @@ import { WebSocketServer } from 'ws';
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
-  // Set up WebSocket for real-time updates (disabled for now to check basic app functionality)
-  /*
+  // Set up WebSocket for real-time updates
   const wss = new WebSocketServer({ 
     server: httpServer, 
     path: "/" 
   });
-  */
-  // Use a dummy client list for now
-  const dummyClients = new Set();
+  
+  const clients = new Set();
+  
+  wss.on('connection', (ws) => {
+    clients.add(ws);
+    
+    ws.on('close', () => {
+      clients.delete(ws);
+    });
+  });
   
   // Send updates to all connected clients (temporarily disabled)
   const broadcastUpdate = (data: any) => {
