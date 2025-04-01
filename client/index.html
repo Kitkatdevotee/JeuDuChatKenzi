@@ -2,14 +2,76 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Jeu du Chat - Map Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Jeu du Chat | KitMars studio</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        background-color: #121212;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+      
+      /* Style pour le conteneur de l'application */
+      #app-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100vh;
+      }
+      
+      /* Style pour l'indicateur de format portrait */
+      #portrait-indicator {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #121212;
+        color: white;
+        font-family: Inter, sans-serif;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        z-index: 10000;
+        padding: 2rem;
+      }
+      
+      @media screen and (max-width: 608px) and (orientation: landscape) {
+        #portrait-indicator {
+          display: flex;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="app-container">
+      <div id="root"></div>
+    </div>
+    
+    <!-- Indicateur de rotation pour format portrait -->
+    <div id="portrait-indicator">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ff5a5f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rotate-90 mb-4">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+          <path d="M12 18h.01"></path>
+        </svg>
+        <h2 style="margin-bottom: 1rem;">Veuillez tourner votre appareil</h2>
+        <p style="opacity: 0.7;">Cette application est conçue pour être utilisée en mode portrait uniquement.</p>
+        <p style="margin-top: 2rem; font-size: 0.8rem; color: #ff5a5f;">KitMars studio</p>
+      </div>
+    </div>
+    
     <script type="module" src="/src/main.tsx"></script>
     <!-- This script injects a replit badge into the page, please feel free to remove this line -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-badge-v3.js"></script>

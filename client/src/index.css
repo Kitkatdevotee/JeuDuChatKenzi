@@ -16,11 +16,12 @@
     touch-action: manipulation;
   }
 
-  /* Format portrait forcé même sur desktop */
+  /* Format portrait 1920x1080 forcé même sur desktop */
   #root {
-    @apply mx-auto h-full;
-    max-width: 480px;
-    min-height: 100vh;
+    @apply mx-auto;
+    width: 608px; /* Ratio 16:9 pour 1080px de largeur */
+    height: 1080px;
+    max-height: 100vh;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
     position: relative;
     display: flex;
@@ -48,7 +49,7 @@
   .mobile-panel {
     @apply fixed bottom-0 left-0 right-0 p-4 rounded-t-lg z-10;
     @apply bg-background/95 backdrop-blur-sm border-t border-border shadow-lg;
-    max-width: 480px;
+    max-width: 608px;
     margin: 0 auto;
     width: 100%;
   }
