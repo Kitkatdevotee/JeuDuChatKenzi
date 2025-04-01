@@ -15,6 +15,7 @@ export interface IStorage {
   updatePlayerPosition(id: number, latitude: string, longitude: string): Promise<Player | undefined>;
   updatePlayerRole(id: number, role: string): Promise<Player | undefined>;
   updatePlayerStatus(id: number, isActive: boolean): Promise<Player | undefined>;
+  updatePlayerColor(id: number, color: string): Promise<Player | undefined>;
   deactivatePlayer(id: number): Promise<Player | undefined>;
   getActivePlayers(): Promise<Player[]>;
   
@@ -68,10 +69,11 @@ export class MemStorage implements IStorage {
     const player: Player = { 
       id,
       username: insertPlayer.username,
-      role: insertPlayer.role || "Mouse", 
+      role: insertPlayer.role || "Souris", 
       latitude: insertPlayer.latitude,
       longitude: insertPlayer.longitude,
-      isActive: insertPlayer.isActive !== undefined ? insertPlayer.isActive : true
+      isActive: insertPlayer.isActive !== undefined ? insertPlayer.isActive : true,
+      color: insertPlayer.color || null
     };
     this.players.set(id, player);
     return player;
@@ -100,6 +102,15 @@ export class MemStorage implements IStorage {
     if (!player) return undefined;
     
     const updatedPlayer = { ...player, isActive };
+    this.players.set(id, updatedPlayer);
+    return updatedPlayer;
+  }
+  
+  async updatePlayerColor(id: number, color: string): Promise<Player | undefined> {
+    const player = this.players.get(id);
+    if (!player) return undefined;
+    
+    const updatedPlayer = { ...player, color };
     this.players.set(id, updatedPlayer);
     return updatedPlayer;
   }

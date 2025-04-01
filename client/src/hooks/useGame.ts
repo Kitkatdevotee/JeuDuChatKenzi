@@ -1,24 +1,5 @@
 import { useState } from "react";
-
-interface Player {
-  id: number;
-  username: string;
-  role: string;
-  latitude: string;
-  longitude: string;
-  isActive: boolean;
-}
-
-interface Coordinate {
-  latitude: number;
-  longitude: number;
-}
-
-interface GameSession {
-  id: number;
-  isRunning: boolean;
-  zoneId: number | null;
-}
+import { Player, Coordinate, GameSession } from "@/lib/types";
 
 export default function useGame() {
   const [players, setPlayers] = useState<Player[]>([]);

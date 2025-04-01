@@ -11,13 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip";
-
-interface Player {
-  id: number;
-  username: string;
-  role: string;
-  isActive?: boolean;
-}
+import { Player } from "@/lib/types";
 
 interface PlayersListProps {
   players: Player[];
@@ -35,9 +29,15 @@ const PLAYER_COLORS = [
   "#ff77a8", "#ff4d94", "#ff1d79", "#e5005e"
 ];
 
-// Fonction pour générer une couleur stable basée sur l'ID du joueur
-function getPlayerColor(id: number): string {
-  return PLAYER_COLORS[id % PLAYER_COLORS.length];
+// Fonction pour obtenir la couleur d'un joueur (couleur personnalisée ou couleur par défaut)
+function getPlayerColor(player: Player): string {
+  // Si le joueur a une couleur personnalisée, l'utiliser
+  if (player.color) {
+    return player.color;
+  }
+  
+  // Sinon, utiliser la couleur par défaut basée sur l'ID
+  return PLAYER_COLORS[player.id % PLAYER_COLORS.length];
 }
 
 export default function PlayersList({ 
@@ -86,7 +86,7 @@ export default function PlayersList({
         <>
           <ul className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
             {players.map(player => {
-              const playerColor = getPlayerColor(player.id);
+              const playerColor = getPlayerColor(player);
               const isSelf = player.id === currentPlayerId;
               
               return (

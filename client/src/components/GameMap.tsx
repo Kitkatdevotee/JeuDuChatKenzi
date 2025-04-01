@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { Player, Coordinate } from "@/lib/types";
 
 // Fix Leaflet's default icon issue
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -19,19 +20,6 @@ let DefaultIcon = L.icon({
 });
 
 L.Marker.prototype.options.icon = DefaultIcon;
-
-interface Player {
-  id: number;
-  username: string;
-  role: string;
-  latitude: string;
-  longitude: string;
-}
-
-interface Coordinate {
-  latitude: number;
-  longitude: number;
-}
 
 interface GameMapProps {
   players: Player[];
@@ -139,7 +127,7 @@ export default function GameMap({
       map.addLayer(drawnItems);
       drawnItemsRef.current = drawnItems;
       
-      // Configure draw control
+      // Configure draw control with better performance options
       const drawControl = new L.Control.Draw({
         draw: {
           polyline: false,
@@ -155,8 +143,15 @@ export default function GameMap({
             },
             shapeOptions: {
               color: '#3b82f6',
-              fillOpacity: 0.2
-            }
+              fillOpacity: 0.2,
+              weight: 2,
+              opacity: 0.8
+            },
+            // Options pour améliorer les performances du dessin
+            showLength: false,
+            metric: true,
+            feet: false,
+            precision: { km: 2, m: 1, mi: 2, ft: 1 }
           }
         },
         edit: {
@@ -290,21 +285,39 @@ export default function GameMap({
       playersLayerRef.current.clearLayers();
       
       // Couleurs pour les joueurs
-      const getPlayerColor = (id: number): string => {
+      const getPlayerColor = (player: Player): string => {
+        // Liste des couleurs spécifiées par le client: 
+        // Rouge, Orange, Jaune, Vert foncé, Vert clair, Bleu foncé, Bleu clair, 
+        // Violet, Marron, Blanc, Noir, Gris et Rose
         const PLAYER_COLORS = [
-          "#ff7e5f", "#feb47b", "#ffae4a", "#f7c59f", 
-          "#9be7ff", "#66e0ff", "#32a1ff", "#0055ff",
-          "#b2fab4", "#85ef8f", "#5ae361", "#38c938",
-          "#d783ff", "#ad54ff", "#8429ff", "#6c0aef",
-          "#ff77a8", "#ff4d94", "#ff1d79", "#e5005e"
+          "#e63946", // Rouge
+          "#ff8c00", // Orange
+          "#ffd700", // Jaune
+          "#2e8b57", // Vert foncé
+          "#90ee90", // Vert clair
+          "#0a2463", // Bleu foncé
+          "#73d2de", // Bleu clair
+          "#9b5de5", // Violet
+          "#8b4513", // Marron
+          "#ffffff", // Blanc
+          "#000000", // Noir
+          "#808080", // Gris
+          "#ff69b4"  // Rose
         ];
-        return PLAYER_COLORS[id % PLAYER_COLORS.length];
+        
+        // Si le joueur a une couleur personnalisée, l'utiliser
+        if (player.color) {
+          return player.color;
+        }
+        
+        // Sinon, utiliser la couleur par défaut basée sur l'ID
+        return PLAYER_COLORS[player.id % PLAYER_COLORS.length];
       };
       
       // Add player markers
       players.forEach(player => {
         const isWolf = player.role === "Loup";
-        const playerColor = getPlayerColor(player.id);
+        const playerColor = getPlayerColor(player);
         
         // Créer des points modernes avec dégradés de la couleur du joueur
         // et une forme légèrement différente selon le rôle
@@ -486,10 +499,35 @@ export default function GameMap({
         zoneLayerRef.current = null;
       }
       
-      // Enable drawing
+      // Désactiver le déplacement de la carte pendant le dessin pour éviter les mouvements non souhaités
       if (mapRef.current) {
+        // Sauvegarder l'état actuel de dragging
+        const wasDraggable = mapRef.current.dragging.enabled();
+        
+        // Désactiver le déplacement de la carte pendant le dessin
+        if (wasDraggable) mapRef.current.dragging.disable();
+        
         // Trigger the polygon drawing tool programmatically
-        new L.Draw.Polygon(mapRef.current as any).enable();
+        const drawingTool = new L.Draw.Polygon(mapRef.current as any);
+        drawingTool.enable();
+        
+        // Ajouter un écouteur pour réactiver le dragging après le dessin
+        mapRef.current.once(L.Draw.Event.CREATED, () => {
+          if (mapRef.current) {
+            setTimeout(() => {
+              mapRef.current?.dragging.enable();
+            }, 100);
+          }
+        });
+        
+        // Au cas où l'utilisateur annule le dessin
+        mapRef.current.once(L.Draw.Event.DRAWSTOP, () => {
+          if (mapRef.current) {
+            setTimeout(() => {
+              mapRef.current?.dragging.enable();
+            }, 100);
+          }
+        });
       }
     }
   };

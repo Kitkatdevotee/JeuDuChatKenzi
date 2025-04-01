@@ -6,10 +6,11 @@ import { z } from "zod";
 export const players = pgTable("players", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  role: text("role").notNull().default("Mouse"),
+  role: text("role").notNull().default("Souris"),
   latitude: text("latitude").notNull(),
   longitude: text("longitude").notNull(),
   isActive: boolean("is_active").notNull().default(true),
+  color: text("color"),  // Couleur personnalisée du joueur (optionnelle)
 });
 
 // Game zone model for defining boundaries
@@ -33,6 +34,7 @@ export const insertPlayerSchema = createInsertSchema(players).pick({
   latitude: true,
   longitude: true,
   isActive: true,
+  color: true,
 });
 
 // Game zone schema for insertion

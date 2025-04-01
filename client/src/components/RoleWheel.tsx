@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Player } from "@shared/schema";
+import { Player } from "@/lib/types";
 
 interface RoleWheelProps {
   players: Player[];

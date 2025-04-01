@@ -171,6 +171,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Mettre à jour la couleur d'un joueur
+  app.patch('/api/players/:id/color', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { color } = req.body;
+      
+      if (!color) {
+        return res.status(400).json({ message: 'Color is required' });
+      }
+      
+      const player = await storage.updatePlayerColor(id, color);
+      
+      if (!player) {
+        return res.status(404).json({ message: 'Player not found' });
+      }
+      
+      // Broadcast to all clients
+      broadcastUpdate({
+        type: 'PLAYER_COLOR_CHANGED',
+        data: player
+      });
+      
+      res.json(player);
+    } catch (error) {
+      res.status(500).json({ message: 'Error updating player color' });
+    }
+  });
+  
   // Get active players only
   app.get('/api/players/active', async (req, res) => {
     try {

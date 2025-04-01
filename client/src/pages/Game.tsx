@@ -8,7 +8,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useGame from "@/hooks/useGame";
-import { Coordinate, Player, GameSession } from "@shared/schema";
+import { Coordinate as SharedCoordinate } from "@shared/schema";
+import { Player, Coordinate, GameSession } from "@/lib/types";
 import { Crown, LogOut, PaintBucket, ChevronUp, ChevronDown, Play, Pause, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,8 +25,8 @@ const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${win
 
 console.log("WebSocket URL:", WS_URL);
 
-// Fonction pour obtenir la couleur d'un joueur en fonction de son ID
-const getPlayerColor = (id: number): string => {
+// Fonction pour obtenir la couleur d'un joueur en fonction de son ID ou de sa couleur personnalisée
+const getPlayerColor = (id: number, players: Player[] = []): string => {
   // Liste des couleurs spécifiées par le client: 
   // Rouge, Orange, Jaune, Vert foncé, Vert clair, Bleu foncé, Bleu clair, 
   // Violet, Marron, Blanc, Noir, Gris et Rose
@@ -44,6 +45,16 @@ const getPlayerColor = (id: number): string => {
     "#808080", // Gris
     "#ff69b4"  // Rose
   ];
+  
+  // Chercher si le joueur a une couleur personnalisée
+  const player = players.find(p => p.id === id);
+  
+  // Si le joueur a une couleur personnalisée et que ce n'est pas null, l'utiliser
+  if (player?.color) {
+    return player.color;
+  }
+  
+  // Sinon, utiliser la couleur par défaut basée sur l'ID
   return PLAYER_COLORS[id % PLAYER_COLORS.length];
 };
 
@@ -290,6 +301,35 @@ export default function Game() {
     // Pour l'instant, simulons la réussite de l'opération
   };
   
+  // Mutation pour mettre à jour la couleur d'un joueur
+  const updatePlayerColorMutation = useMutation({
+    mutationFn: async (color: string) => {
+      if (!playerId) return null;
+      
+      const response = await apiRequest("PATCH", `/api/players/${playerId}/color`, {
+        color
+      });
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ['/api/players'] });
+        toast({
+          title: "Couleur changée",
+          description: "Votre couleur a été modifiée avec succès!",
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de changer votre couleur. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Fonction pour changer la couleur du joueur
   const handleChangeColor = () => {
     // Liste des couleurs spécifiées par le client
@@ -311,26 +351,25 @@ export default function Game() {
     
     // Choisir une couleur aléatoire différente de la couleur actuelle
     const randomColor = () => {
-      const currentId = parseInt(localStorage.getItem("playerId") || "0");
-      const currentColorIndex = currentId % PLAYER_COLORS.length;
-      let newIndex;
+      let newIndex = Math.floor(Math.random() * PLAYER_COLORS.length);
       
-      do {
-        newIndex = Math.floor(Math.random() * PLAYER_COLORS.length);
-      } while (newIndex === currentColorIndex);
+      // Trouver le joueur actuel
+      const currentPlayerId = parseInt(playerId || "0");
+      const currentPlayer = players.find(p => p.id === currentPlayerId);
       
-      return newIndex;
+      // Si le joueur a déjà une couleur personnalisée, éviter de choisir la même
+      if (currentPlayer?.color) {
+        while (PLAYER_COLORS[newIndex] === currentPlayer.color) {
+          newIndex = Math.floor(Math.random() * PLAYER_COLORS.length);
+        }
+      }
+      
+      return PLAYER_COLORS[newIndex];
     };
     
-    // Simulons un changement de couleur (dans une vraie implémentation, on sauvegarderait en base de données)
-    const newColorIndex = randomColor();
-    
-    // Note: Dans une version complète, on sauvegarderait cette info en base de données
-    // Pour l'instant, affichons juste une notification
-    toast({
-      title: "Couleur changée",
-      description: "Votre couleur a été modifiée avec succès!",
-    });
+    // Obtenir une nouvelle couleur et l'envoyer au serveur
+    const newColor = randomColor();
+    updatePlayerColorMutation.mutate(newColor);
   };
   
   const isLoading = isLoadingPlayers || isLoadingSession || isLoadingZones;
@@ -385,7 +424,7 @@ export default function Game() {
                     <span 
                       className="font-medium max-w-[100px] truncate"
                       style={{ 
-                        color: getPlayerColor(parseInt(playerId || "0")),
+                        color: getPlayerColor(parseInt(playerId || "0"), players),
                         textShadow: '0px 0px 1px rgba(0,0,0,0.2)'
                       }}
                     >
