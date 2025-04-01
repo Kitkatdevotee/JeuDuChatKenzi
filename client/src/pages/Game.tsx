@@ -109,30 +109,9 @@ export default function Game() {
     // We'll use React Query for data fetching instead
   }, [playerId, navigate]);
   
-  // État pour le mode dessin de zone
-  const [isDrawingMode, setIsDrawingMode] = useState(false);
-  // État pour afficher/masquer les contrôles
-  const [showControls, setShowControls] = useState(true);
   // État pour la roulette de sélection du loup
   const [showRoleWheel, setShowRoleWheel] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const lastScrollTop = useRef(0);
-  
-  // Gestionnaire de défilement pour afficher/masquer les contrôles
-  const handleScroll = useCallback(() => {
-    if (!scrollRef.current) return;
-    
-    const st = scrollRef.current.scrollTop;
-    if (st > lastScrollTop.current + 10) {
-      // Défilement vers le bas - masquer les contrôles
-      setShowControls(false);
-    } else if (st < lastScrollTop.current - 10) {
-      // Défilement vers le haut - afficher les contrôles
-      setShowControls(true);
-    }
-    
-    lastScrollTop.current = st <= 0 ? 0 : st;
-  }, []);
   
   // Fetch initial data
   const { isLoading: isLoadingPlayers } = useQuery({
@@ -547,23 +526,7 @@ export default function Game() {
         </div>
       </div>
       
-      {/* Game Controls - Panel du bas adapté au mobile avec animation et fond semi-transparent */}
-      <div className={`fixed bottom-0 left-0 right-0 z-30 transition-all duration-300 pointer-events-auto ${
-        showControls 
-          ? "opacity-100 translate-y-0" 
-          : "opacity-0 translate-y-full pointer-events-none"
-      }`}>
-        <div className="bg-background/80 backdrop-blur-sm border-t border-border/60 shadow-lg">
-          <GameControls 
-            onDrawZone={handleDrawZone}
-            onToggleGame={handleToggleGame}
-            gameRunning={gameRunning}
-            isDrawingZone={saveZoneMutation.isPending || isDrawingMode}
-            isTogglingGame={toggleGameMutation.isPending}
-            isModerator={isModerator}
-          />
-        </div>
-      </div>
+      
       
       {/* Roulette de sélection du loup */}
       {showRoleWheel && (
