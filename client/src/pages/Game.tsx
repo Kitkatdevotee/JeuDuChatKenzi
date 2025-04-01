@@ -292,86 +292,89 @@ export default function Game() {
   const isModerator = moderators.includes(playerName);
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
-      {/* Header plus compact pour mobile */}
-      <header className="bg-background border-b border-border p-3 shadow-sm z-10">
-        <div className="flex justify-between items-center">
-          <h1 className="text-lg font-semibold flex items-center gap-1.5">
-            <span className="text-primary">Jeu du Chat</span>
-          </h1>
-          
-          <div className="absolute left-1/2 transform -translate-x-1/2">
-            {/* Info du joueur actuel - centré avec popover */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <div className="flex items-center gap-1 text-xs px-3 py-1.5 bg-muted/80 backdrop-blur-sm rounded-full shadow-sm cursor-pointer hover:bg-muted/90 transition-colors">
-                  <span>{playerRole === "Loup" ? "🐺" : "🐭"}</span>
-                  <span className="font-medium max-w-[100px] truncate">{playerName}</span>
-                  {isModerator && (
-                    <span className="ml-1 text-amber-500">
-                      <Crown className="h-3 w-3 inline-block" />
-                    </span>
-                  )}
-                </div>
-              </PopoverTrigger>
-              <PopoverContent className="w-56 p-2">
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Options du joueur</h4>
-                  <div className="border-t border-border pt-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full flex items-center gap-2 mb-2"
-                      onClick={handleChangeColor}
-                    >
-                      <PaintBucket className="h-4 w-4 text-primary" />
-                      <span>Changer ma couleur</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full flex items-center gap-2"
-                      onClick={handleDisconnect}
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Se déconnecter</span>
-                    </Button>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          <div className="w-6">
-            {/* Espace pour équilibrer */}
-          </div>
-        </div>
-      </header>
+    <div className="h-screen relative overflow-hidden">
+      {/* Map comme arrière-plan de toute l'application */}
+      <div className="absolute inset-0 z-0">
+        <GameMap 
+          players={players}
+          polygonCoordinates={polygonCoordinates}
+          isDrawingMode={isDrawingMode}
+          onZoneDrawn={handleZoneDrawn}
+          isModerator={isModerator}
+          onPromoteToModerator={handlePromoteToModerator}
+        />
+      </div>
       
-      {/* Interface divisée avec carte en haut */}
-      <div className="flex-1 flex flex-col relative">
-        {/* Map Container - Seulement en haut */}
-        <div className="h-3/5 relative">
-          <GameMap 
-            players={players}
-            polygonCoordinates={polygonCoordinates}
-            isDrawingMode={isDrawingMode}
-            onZoneDrawn={handleZoneDrawn}
-            isModerator={isModerator}
-            onPromoteToModerator={handlePromoteToModerator}
-          />
-        </div>
+      {/* Layout superposé sur la carte - tout le contenu ici sera au-dessus de la carte */}
+      <div className="absolute inset-0 flex flex-col pointer-events-none">
+        {/* Header flottant sur la carte avec fond semi-transparent */}
+        <header className="bg-background/80 backdrop-blur-sm border-b border-border/60 p-3 shadow-sm z-20 pointer-events-auto">
+          <div className="flex justify-between items-center">
+            <h1 className="text-lg font-semibold flex items-center gap-1.5">
+              <span className="text-primary">Jeu du Chat</span>
+            </h1>
+            
+            <div className="absolute left-1/2 transform -translate-x-1/2">
+              {/* Info du joueur actuel - centré avec popover */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <div className="flex items-center gap-1 text-xs px-3 py-1.5 bg-muted/90 backdrop-blur-sm rounded-full shadow-md cursor-pointer hover:bg-muted/100 transition-colors">
+                    <span>{playerRole === "Loup" ? "🐺" : "🐭"}</span>
+                    <span className="font-medium max-w-[100px] truncate">{playerName}</span>
+                    {isModerator && (
+                      <span className="ml-1 text-amber-500">
+                        <Crown className="h-3 w-3 inline-block" />
+                      </span>
+                    )}
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2 z-50">
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Options du joueur</h4>
+                    <div className="border-t border-border pt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full flex items-center gap-2 mb-2"
+                        onClick={handleChangeColor}
+                      >
+                        <PaintBucket className="h-4 w-4 text-primary" />
+                        <span>Changer ma couleur</span>
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full flex items-center gap-2"
+                        onClick={handleDisconnect}
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span>Se déconnecter</span>
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            <div className="w-6">
+              {/* Espace pour équilibrer */}
+            </div>
+          </div>
+        </header>
         
-        {/* Zone informative en dessous de la carte */}
+        {/* Zone centrale - espacée pour voir la carte */}
+        <div className="flex-1"></div>
+        
+        {/* Zone informative en bas avec fond semi-transparent */}
         <div 
           ref={scrollRef}
           onScroll={handleScroll}
-          className="h-2/5 bg-background border-t border-border p-4 flex flex-col space-y-4 overflow-y-auto custom-scrollbar">
+          className="h-2/5 bg-background/90 backdrop-blur-sm border-t border-border p-4 flex flex-col space-y-4 overflow-y-auto custom-scrollbar pointer-events-auto">
           <h2 className="text-lg font-medium">Informations de jeu</h2>
           
           <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 bg-muted/50 rounded-lg">
+            <div className="p-3 bg-muted/80 rounded-lg shadow-sm">
               <h3 className="text-sm font-medium mb-1">Statut</h3>
               <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
                 gameRunning 
@@ -387,13 +390,13 @@ export default function Game() {
               </div>
             </div>
             
-            <div className="p-3 bg-muted/50 rounded-lg">
+            <div className="p-3 bg-muted/80 rounded-lg shadow-sm">
               <h3 className="text-sm font-medium mb-1">Joueurs</h3>
               <div className="flex gap-2">
-                <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded-full">
+                <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-400 rounded-full">
                   🐭 {players.filter(p => p.role === "Souris").length}
                 </span>
-                <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 rounded-full">
+                <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-400 rounded-full">
                   🐺 {players.filter(p => p.role === "Loup").length}
                 </span>
               </div>
@@ -412,20 +415,22 @@ export default function Game() {
         </div>
       </div>
       
-      {/* Game Controls - Panel du bas adapté au mobile avec animation */}
-      <div className={`transition-all duration-300 ${
+      {/* Game Controls - Panel du bas adapté au mobile avec animation et fond semi-transparent */}
+      <div className={`fixed bottom-0 left-0 right-0 z-30 transition-all duration-300 pointer-events-auto ${
         showControls 
           ? "opacity-100 translate-y-0" 
           : "opacity-0 translate-y-full pointer-events-none"
       }`}>
-        <GameControls 
-          onDrawZone={handleDrawZone}
-          onToggleGame={handleToggleGame}
-          gameRunning={gameRunning}
-          isDrawingZone={saveZoneMutation.isPending || isDrawingMode}
-          isTogglingGame={toggleGameMutation.isPending}
-          isModerator={isModerator}
-        />
+        <div className="bg-background/80 backdrop-blur-sm border-t border-border/60 shadow-lg">
+          <GameControls 
+            onDrawZone={handleDrawZone}
+            onToggleGame={handleToggleGame}
+            gameRunning={gameRunning}
+            isDrawingZone={saveZoneMutation.isPending || isDrawingMode}
+            isTogglingGame={toggleGameMutation.isPending}
+            isModerator={isModerator}
+          />
+        </div>
       </div>
     </div>
   );
