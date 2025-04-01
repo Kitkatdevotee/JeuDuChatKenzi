@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import GameMap from "@/components/GameMap";
 import PlayersList from "@/components/PlayersList";
 import GameControls from "@/components/GameControls";
+import RoleWheel from "@/components/RoleWheel";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -25,12 +26,23 @@ console.log("WebSocket URL:", WS_URL);
 
 // Fonction pour obtenir la couleur d'un joueur en fonction de son ID
 const getPlayerColor = (id: number): string => {
+  // Liste des couleurs spécifiées par le client: 
+  // Rouge, Orange, Jaune, Vert foncé, Vert clair, Bleu foncé, Bleu clair, 
+  // Violet, Marron, Blanc, Noir, Gris et Rose
   const PLAYER_COLORS = [
-    "#ff7e5f", "#feb47b", "#ffae4a", "#f7c59f", 
-    "#9be7ff", "#66e0ff", "#32a1ff", "#0055ff",
-    "#b2fab4", "#85ef8f", "#5ae361", "#38c938",
-    "#d783ff", "#ad54ff", "#8429ff", "#6c0aef",
-    "#ff77a8", "#ff4d94", "#ff1d79", "#e5005e"
+    "#e63946", // Rouge
+    "#ff8c00", // Orange
+    "#ffd700", // Jaune
+    "#2e8b57", // Vert foncé
+    "#90ee90", // Vert clair
+    "#0a2463", // Bleu foncé
+    "#73d2de", // Bleu clair
+    "#9b5de5", // Violet
+    "#8b4513", // Marron
+    "#ffffff", // Blanc
+    "#000000", // Noir
+    "#808080", // Gris
+    "#ff69b4"  // Rose
   ];
   return PLAYER_COLORS[id % PLAYER_COLORS.length];
 };
@@ -67,6 +79,8 @@ export default function Game() {
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   // État pour afficher/masquer les contrôles
   const [showControls, setShowControls] = useState(true);
+  // État pour la roulette de sélection du loup
+  const [showRoleWheel, setShowRoleWheel] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
   
@@ -206,7 +220,35 @@ export default function Game() {
   };
   
   const handleToggleGame = () => {
+    // Si on démarre une partie et qu'il n'y a pas encore de loup, on affiche la roulette de sélection
+    if (!gameRunning && players.filter(p => p.role === "Loup").length === 0 && players.length >= 2) {
+      setShowRoleWheel(true);
+      return;
+    }
+    
     toggleGameMutation.mutate();
+  };
+  
+  // Mutation pour mettre à jour le rôle d'un joueur
+  const updatePlayerRoleMutation = useMutation({
+    mutationFn: async (playerId: number) => {
+      const response = await apiRequest("PATCH", `/api/players/${playerId}/role`, {
+        role: "Loup"
+      });
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/players'] });
+      // Après avoir choisi le loup, on démarre la partie
+      toggleGameMutation.mutate();
+    }
+  });
+  
+  // Fonction pour gérer la sélection d'un joueur comme loup
+  const handleWheelComplete = (selectedPlayerId: number) => {
+    updatePlayerRoleMutation.mutate(selectedPlayerId);
+    setShowRoleWheel(false);
   };
   
   // Déconnexion du joueur
@@ -250,13 +292,21 @@ export default function Game() {
   
   // Fonction pour changer la couleur du joueur
   const handleChangeColor = () => {
-    // Couleurs disponibles
+    // Liste des couleurs spécifiées par le client
     const PLAYER_COLORS = [
-      "#ff7e5f", "#feb47b", "#ffae4a", "#f7c59f", 
-      "#9be7ff", "#66e0ff", "#32a1ff", "#0055ff",
-      "#b2fab4", "#85ef8f", "#5ae361", "#38c938",
-      "#d783ff", "#ad54ff", "#8429ff", "#6c0aef",
-      "#ff77a8", "#ff4d94", "#ff1d79", "#e5005e"
+      "#e63946", // Rouge
+      "#ff8c00", // Orange
+      "#ffd700", // Jaune
+      "#2e8b57", // Vert foncé
+      "#90ee90", // Vert clair
+      "#0a2463", // Bleu foncé
+      "#73d2de", // Bleu clair
+      "#9b5de5", // Violet
+      "#8b4513", // Marron
+      "#ffffff", // Blanc
+      "#000000", // Noir
+      "#808080", // Gris
+      "#ff69b4"  // Rose
     ];
     
     // Choisir une couleur aléatoire différente de la couleur actuelle
@@ -452,6 +502,15 @@ export default function Game() {
           />
         </div>
       </div>
+      
+      {/* Roulette de sélection du loup */}
+      {showRoleWheel && (
+        <RoleWheel 
+          players={players}
+          onWheelComplete={handleWheelComplete}
+          onClose={() => setShowRoleWheel(false)}
+        />
+      )}
     </div>
   );
 }

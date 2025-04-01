@@ -44,6 +44,17 @@
   }
 }
 
+/* Animation pour la roulette du jeu */
+@keyframes wheel-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(var(--spin-degrees, 1800deg)); }
+}
+
+/* Style pour le triangle indicateur de la roulette */
+.clip-triangle {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
 @layer components {
   /* Composants pour interface mobile */
   .mobile-panel {

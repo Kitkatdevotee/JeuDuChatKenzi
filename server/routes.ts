@@ -143,6 +143,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Mettre à jour le rôle d'un joueur (Loup ou Souris)
+  app.patch('/api/players/:id/role', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { role } = req.body;
+      
+      if (!role || !["Loup", "Souris"].includes(role)) {
+        return res.status(400).json({ message: 'Role must be "Loup" or "Souris"' });
+      }
+      
+      const player = await storage.updatePlayerRole(id, role);
+      
+      if (!player) {
+        return res.status(404).json({ message: 'Player not found' });
+      }
+      
+      // Broadcast to all clients
+      broadcastUpdate({
+        type: 'PLAYER_ROLE_CHANGED',
+        data: player
+      });
+      
+      res.json(player);
+    } catch (error) {
+      res.status(500).json({ message: 'Error updating player role' });
+    }
+  });
+  
   // Get active players only
   app.get('/api/players/active', async (req, res) => {
     try {
