@@ -8,6 +8,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useGame from "@/hooks/useGame";
 import { Coordinate, Player, GameSession } from "@shared/schema";
+import { Crown } from "lucide-react";
 
 // Define the WebSocket URL relative to the current location
 // For Replit, we use the same protocol and host
@@ -167,6 +168,9 @@ export default function Game() {
   
   const playerName = localStorage.getItem("playerName") || "Joueur";
   const playerRole = localStorage.getItem("playerRole") || "Souris";
+  
+  // Vérification si le joueur est Kitkatdevotee (modérateur unique)
+  const isKitkatdevotee = playerName === "Kitkatdevotee";
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
@@ -182,6 +186,11 @@ export default function Game() {
             <div className="flex items-center gap-1 text-xs px-2 py-1 bg-muted rounded-md">
               <span>{playerRole === "Loup" ? "🐺" : "🐭"}</span>
               <span className="font-medium max-w-[100px] truncate">{playerName}</span>
+              {isKitkatdevotee && (
+                <span className="ml-1 text-amber-500">
+                  <Crown className="h-3 w-3 inline-block" />
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -198,7 +207,7 @@ export default function Game() {
         </div>
         
         {/* Zone informative en dessous de la carte */}
-        <div className="h-2/5 bg-background border-t border-border p-4 flex flex-col space-y-4 overflow-y-auto">
+        <div className="h-2/5 bg-background border-t border-border p-4 flex flex-col space-y-4 overflow-y-auto custom-scrollbar">
           <h2 className="text-lg font-medium">Informations de jeu</h2>
           
           <div className="grid grid-cols-2 gap-3">
@@ -232,10 +241,11 @@ export default function Game() {
           </div>
           
           {/* Liste des joueurs intégrée */}
-          <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="flex-1 min-h-[200px] overflow-y-auto custom-scrollbar">
             <PlayersList 
               players={players} 
-              onDisconnect={handleDisconnect} 
+              onDisconnect={handleDisconnect}
+              isModerator={isKitkatdevotee}
             />
           </div>
         </div>
@@ -248,6 +258,7 @@ export default function Game() {
         gameRunning={gameRunning}
         isDrawingZone={drawZoneMutation.isPending}
         isTogglingGame={toggleGameMutation.isPending}
+        isModerator={isKitkatdevotee}
       />
     </div>
   );

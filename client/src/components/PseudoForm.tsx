@@ -27,6 +27,8 @@ export default function PseudoForm({ onSubmit, isLoading }: PseudoFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isPseudoValid && !isLoading) {
+      // Enregistrer le pseudo dans localStorage pour les vérifications d'accès modérateur
+      localStorage.setItem("playerName", pseudo);
       onSubmit(pseudo);
     }
   };
