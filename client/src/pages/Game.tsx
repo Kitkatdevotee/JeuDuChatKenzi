@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Popover,
   PopoverContent,
-  PopoverTrigger,
+  PopoverTrigger 
 } from "@/components/ui/popover";
 
 // Define the WebSocket URL relative to the current location

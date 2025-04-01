@@ -23,11 +23,11 @@ export function ThemeToggle() {
       variant="secondary" 
       size="icon" 
       onClick={toggleTheme}
-      className="fixed top-6 right-6 z-50 rounded-full w-12 h-12 bg-background/80 backdrop-blur-sm shadow-lg border border-border"
+      className="fixed top-3 right-3 z-50 rounded-full w-8 h-8 bg-background/80 backdrop-blur-sm shadow-lg border border-border"
     >
       {theme === "light" ? 
-        <Moon className="h-6 w-6 text-primary" /> : 
-        <Sun className="h-6 w-6 text-yellow-400" />
+        <Moon className="h-4 w-4 text-primary" /> : 
+        <Sun className="h-4 w-4 text-yellow-400" />
       }
       <span className="sr-only">Changer de thème</span>
     </Button>
