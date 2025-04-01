@@ -1,0 +1,163 @@
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import MapView, { Marker, Polygon } from 'react-native-maps'; // Expo Maps compatible avec Snack
+
+// Coordonnées de la ville de Saint-Foy-l'Argentière
+const initialRegion = {
+  latitude: 45.7456,
+  longitude: 4.635,
+  latitudeDelta: 0.01,
+  longitudeDelta: 0.01
+};
+
+// Zone que le modérateur pourra dessiner
+const defaultPolygon = [
+  { latitude: 45.745, longitude: 4.635 },
+  { latitude: 45.748, longitude: 4.637 },
+  { latitude: 45.745, longitude: 4.640 },
+  { latitude: 45.742, longitude: 4.638 }
+];
+
+export default function App() {
+  const [pseudo, setPseudo] = useState("");
+  const [isPseudoValid, setIsPseudoValid] = useState(false);
+  const [showGame, setShowGame] = useState(false);
+  const [gameRunning, setGameRunning] = useState(false);
+  const [players, setPlayers] = useState([]);
+  const [polygonCoordinates, setPolygonCoordinates] = useState([]);
+
+  // Fonction pour vérifier la validité du pseudo
+  const handlePseudoChange = (text) => {
+    setPseudo(text);
+    if (text.length >= 4 && text.length <= 16) {
+      setIsPseudoValid(true);
+    } else {
+      setIsPseudoValid(false);
+    }
+  };
+
+  const handleStartGame = () => {
+    setPlayers([
+      { id: 1, name: pseudo, role: "Souris", position: { latitude: 45.7456, longitude: 4.635 } },
+      { id: 2, name: "Joueur 2", role: "Loup", position: { latitude: 45.748, longitude: 4.638 } }
+    ]);
+    setShowGame(true);
+  };
+
+  const handleDrawZone = () => {
+    setPolygonCoordinates(defaultPolygon);
+    Alert.alert("Zone dessinée", "La zone autorisée est visible pour tous les joueurs.");
+  };
+
+  return (
+    <View style={styles.container}>
+      {!showGame ? (
+        <View style={styles.pseudoContainer}>
+          <Text style={styles.title}>Choisir votre pseudo</Text>
+          <TextInput
+            style={styles.input}
+            value={pseudo}
+            onChangeText={handlePseudoChange}
+            placeholder="Entrez un pseudo"
+          />
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: isPseudoValid ? "green" : "gray" }]}
+            disabled={!isPseudoValid}
+            onPress={handleStartGame}
+          >
+            <Text style={styles.buttonText}>Commencer le jeu</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.gameContainer}>
+          <Text style={styles.title}>Jeu du Chat</Text>
+          <MapView
+            style={styles.map}
+            initialRegion={initialRegion}
+          >
+            {players.map(player => (
+              <Marker
+                key={player.id}
+                coordinate={player.position}
+                title={player.name}
+              />
+            ))}
+            {polygonCoordinates.length > 0 && (
+              <Polygon
+                coordinates={polygonCoordinates}
+                strokeColor="rgba(0,0,0,0.5)"
+                fillColor="rgba(0,0,0,0.1)"
+                strokeWidth={2}
+              />
+            )}
+          </MapView>
+          <View style={styles.buttonsContainer}>
+            <TouchableOpacity
+              onPress={handleDrawZone}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>Dessiner Zone</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setGameRunning(!gameRunning)}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>{gameRunning ? "Arrêter le jeu" : "Démarrer le jeu"}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5"
+  },
+  pseudoContainer: {
+    alignItems: "center",
+  },
+  gameContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20
+  },
+  input: {
+    height: 40,
+    borderColor: "gray",
+    borderWidth: 1,
+    marginBottom: 20,
+    width: 200,
+    paddingLeft: 10,
+    borderRadius: 5
+  },
+  button: {
+    backgroundColor: "blue",
+    padding: 10,
+    margin: 10,
+    borderRadius: 5
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16
+  },
+  buttonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "80%"
+  },
+  map: {
+    width: "100%",
+    height: 300,
+    marginBottom: 20
+  }
+});
