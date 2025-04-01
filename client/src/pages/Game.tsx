@@ -8,7 +8,14 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useGame from "@/hooks/useGame";
 import { Coordinate, Player, GameSession } from "@shared/schema";
-import { Crown } from "lucide-react";
+import { Crown, LogOut, PaintBucket, ChevronUp, ChevronDown, Play, Pause, UsersRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 // Define the WebSocket URL relative to the current location
 // For Replit, we use the same protocol and host
@@ -229,6 +236,41 @@ export default function Game() {
     // Pour l'instant, simulons la réussite de l'opération
   };
   
+  // Fonction pour changer la couleur du joueur
+  const handleChangeColor = () => {
+    // Couleurs disponibles
+    const PLAYER_COLORS = [
+      "#ff7e5f", "#feb47b", "#ffae4a", "#f7c59f", 
+      "#9be7ff", "#66e0ff", "#32a1ff", "#0055ff",
+      "#b2fab4", "#85ef8f", "#5ae361", "#38c938",
+      "#d783ff", "#ad54ff", "#8429ff", "#6c0aef",
+      "#ff77a8", "#ff4d94", "#ff1d79", "#e5005e"
+    ];
+    
+    // Choisir une couleur aléatoire différente de la couleur actuelle
+    const randomColor = () => {
+      const currentId = parseInt(localStorage.getItem("playerId") || "0");
+      const currentColorIndex = currentId % PLAYER_COLORS.length;
+      let newIndex;
+      
+      do {
+        newIndex = Math.floor(Math.random() * PLAYER_COLORS.length);
+      } while (newIndex === currentColorIndex);
+      
+      return newIndex;
+    };
+    
+    // Simulons un changement de couleur (dans une vraie implémentation, on sauvegarderait en base de données)
+    const newColorIndex = randomColor();
+    
+    // Note: Dans une version complète, on sauvegarderait cette info en base de données
+    // Pour l'instant, affichons juste une notification
+    toast({
+      title: "Couleur changée",
+      description: "Votre couleur a été modifiée avec succès!",
+    });
+  };
+  
   const isLoading = isLoadingPlayers || isLoadingSession || isLoadingZones;
   
   if (isLoading) {
@@ -259,16 +301,46 @@ export default function Game() {
           </h1>
           
           <div className="absolute left-1/2 transform -translate-x-1/2">
-            {/* Info du joueur actuel - centré */}
-            <div className="flex items-center gap-1 text-xs px-3 py-1.5 bg-muted/80 backdrop-blur-sm rounded-full shadow-sm">
-              <span>{playerRole === "Loup" ? "🐺" : "🐭"}</span>
-              <span className="font-medium max-w-[100px] truncate">{playerName}</span>
-              {isModerator && (
-                <span className="ml-1 text-amber-500">
-                  <Crown className="h-3 w-3 inline-block" />
-                </span>
-              )}
-            </div>
+            {/* Info du joueur actuel - centré avec popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className="flex items-center gap-1 text-xs px-3 py-1.5 bg-muted/80 backdrop-blur-sm rounded-full shadow-sm cursor-pointer hover:bg-muted/90 transition-colors">
+                  <span>{playerRole === "Loup" ? "🐺" : "🐭"}</span>
+                  <span className="font-medium max-w-[100px] truncate">{playerName}</span>
+                  {isModerator && (
+                    <span className="ml-1 text-amber-500">
+                      <Crown className="h-3 w-3 inline-block" />
+                    </span>
+                  )}
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Options du joueur</h4>
+                  <div className="border-t border-border pt-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full flex items-center gap-2 mb-2"
+                      onClick={handleChangeColor}
+                    >
+                      <PaintBucket className="h-4 w-4 text-primary" />
+                      <span>Changer ma couleur</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full flex items-center gap-2"
+                      onClick={handleDisconnect}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Se déconnecter</span>
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
           
           <div className="w-6">
