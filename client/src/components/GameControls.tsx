@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { MapPinned, Play, Square, Loader2 } from "lucide-react";
+import { MapPinned, Play, Square, Loader2, MousePointer, UserCog } from "lucide-react";
 
 interface GameControlsProps {
   onDrawZone: () => void;

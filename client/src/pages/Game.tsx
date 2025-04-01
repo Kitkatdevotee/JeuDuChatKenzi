@@ -44,6 +44,9 @@ export default function Game() {
     // We'll use React Query for data fetching instead
   }, [playerId, navigate]);
   
+  // État pour le mode dessin de zone
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  
   // Fetch initial data
   const { isLoading: isLoadingPlayers } = useQuery({
     queryKey: ['/api/players'],
@@ -52,6 +55,22 @@ export default function Game() {
   const { isLoading: isLoadingSession } = useQuery({
     queryKey: ['/api/session'],
   });
+  
+  // Récupération des zones
+  const { isLoading: isLoadingZones } = useQuery({
+    queryKey: ['/api/zones']
+  });
+  
+  // Traitement des données de zone une fois récupérées
+  useEffect(() => {
+    if (isLoadingZones) return;
+    const zonesData = queryClient.getQueryData(['/api/zones']) as any[];
+    if (zonesData && zonesData.length > 0) {
+      // Récupérer les coordonnées de la première zone
+      const zoneCoordinates = JSON.parse(zonesData[0].coordinates);
+      setPolygonCoordinates(zoneCoordinates);
+    }
+  }, [isLoadingZones, setPolygonCoordinates]);
   
   // Set state based on query results
   useEffect(() => {
@@ -117,8 +136,34 @@ export default function Game() {
     }
   });
   
+  // Nouvelle mutation pour sauvegarder une zone dessinée
+  const saveZoneMutation = useMutation({
+    mutationFn: async (coordinates: Coordinate[]) => {
+      const response = await apiRequest("POST", "/api/zones", {
+        name: "Zone de jeu",
+        coordinates: JSON.stringify(coordinates)
+      });
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/zones'] });
+      setIsDrawingMode(false);
+      toast({
+        title: "Zone enregistrée",
+        description: "La nouvelle zone de jeu est visible pour tous les joueurs."
+      });
+    }
+  });
+  
+  // Fonction pour activer le mode dessin de zone
   const handleDrawZone = () => {
-    drawZoneMutation.mutate();
+    setIsDrawingMode(true);
+  };
+  
+  // Fonction pour sauvegarder la zone dessinée
+  const handleZoneDrawn = (coordinates: Coordinate[]) => {
+    saveZoneMutation.mutate(coordinates);
   };
   
   const handleToggleGame = () => {
@@ -153,7 +198,7 @@ export default function Game() {
     disconnectMutation.mutate();
   };
   
-  const isLoading = isLoadingPlayers || isLoadingSession;
+  const isLoading = isLoadingPlayers || isLoadingSession || isLoadingZones;
   
   if (isLoading) {
     return (
@@ -203,6 +248,9 @@ export default function Game() {
           <GameMap 
             players={players}
             polygonCoordinates={polygonCoordinates}
+            isDrawingMode={isDrawingMode}
+            onZoneDrawn={handleZoneDrawn}
+            isModerator={isKitkatdevotee}
           />
         </div>
         
@@ -256,7 +304,7 @@ export default function Game() {
         onDrawZone={handleDrawZone}
         onToggleGame={handleToggleGame}
         gameRunning={gameRunning}
-        isDrawingZone={drawZoneMutation.isPending}
+        isDrawingZone={saveZoneMutation.isPending || isDrawingMode}
         isTogglingGame={toggleGameMutation.isPending}
         isModerator={isKitkatdevotee}
       />

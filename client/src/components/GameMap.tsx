@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import L from 'leaflet';
-import { ZoomIn, ZoomOut, Locate, Target } from "lucide-react";
+import 'leaflet-draw';
+import { ZoomIn, ZoomOut, Locate, Target, Save, Check, X, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
 
 // Fix Leaflet's default icon issue
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -33,16 +36,30 @@ interface Coordinate {
 interface GameMapProps {
   players: Player[];
   polygonCoordinates: Coordinate[];
+  isDrawingMode?: boolean;
+  onZoneDrawn?: (coordinates: Coordinate[]) => void;
+  isModerator?: boolean;
 }
 
-export default function GameMap({ players, polygonCoordinates }: GameMapProps) {
+export default function GameMap({ 
+  players, 
+  polygonCoordinates, 
+  isDrawingMode = false, 
+  onZoneDrawn,
+  isModerator = false
+}: GameMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapElementRef = useRef<HTMLDivElement | null>(null);
   const playersLayerRef = useRef<L.LayerGroup | null>(null);
   const zoneLayerRef = useRef<L.Polygon | null>(null);
+  const drawControlRef = useRef<L.Control.Draw | null>(null);
+  const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [hasGeolocation, setHasGeolocation] = useState<boolean | null>(null);
   const [userPosition, setUserPosition] = useState<{latitude: number, longitude: number} | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hasDrawnPolygon, setHasDrawnPolygon] = useState(false);
+  const [drawnPolygon, setDrawnPolygon] = useState<Coordinate[]>([]);
   
   // Centre sur Saint-Foy-l'Argentière, France
   const initialRegion = {
@@ -113,6 +130,99 @@ export default function GameMap({ players, polygonCoordinates }: GameMapProps) {
         .addTo(map)
         .bindPopup("Votre position");
       
+      // Initialize drawing features
+      const drawnItems = new L.FeatureGroup();
+      map.addLayer(drawnItems);
+      drawnItemsRef.current = drawnItems;
+      
+      // Configure draw control
+      const drawControl = new L.Control.Draw({
+        draw: {
+          polyline: false,
+          rectangle: false,
+          circle: false,
+          circlemarker: false,
+          marker: false,
+          polygon: {
+            allowIntersection: false,
+            drawError: {
+              color: '#e1e100',
+              message: '<strong>Erreur:</strong> Les polygones ne peuvent pas se croiser!'
+            },
+            shapeOptions: {
+              color: '#3b82f6',
+              fillOpacity: 0.2
+            }
+          }
+        },
+        edit: {
+          featureGroup: drawnItems,
+          remove: true
+        }
+      });
+      
+      // Add the draw control to the map only if in drawing mode
+      if (isDrawingMode && isModerator) {
+        map.addControl(drawControl);
+        drawControlRef.current = drawControl;
+      }
+      
+      // Handle drawn items
+      map.on(L.Draw.Event.CREATED, function (e: any) {
+        const layer = e.layer;
+        
+        if (layer instanceof L.Polygon) {
+          // Clear previous drawn items
+          drawnItems.clearLayers();
+          
+          // Add the new layer to drawnItems
+          drawnItems.addLayer(layer);
+          
+          // Extract coordinates
+          const latLngs = layer.getLatLngs()[0] as L.LatLng[];
+          const coordinates = latLngs.map((latLng: L.LatLng) => ({
+            latitude: latLng.lat,
+            longitude: latLng.lng
+          }));
+          
+          setDrawnPolygon(coordinates as Coordinate[]);
+          setHasDrawnPolygon(true);
+          
+          // Create an inverse polygon to highlight the outside area in red
+          const bounds = map.getBounds();
+          const outerBounds = [
+            bounds.getNorthWest(),
+            bounds.getNorthEast(),
+            bounds.getSouthEast(),
+            bounds.getSouthWest()
+          ];
+          
+          // Check if zoneLayerRef.current exists and remove it
+          if (zoneLayerRef.current) {
+            zoneLayerRef.current.remove();
+          }
+          
+          // Create the inverse polygon (highlighting outside area in red)
+          const inversePolygon = L.polygon([
+            outerBounds,
+            latLngs as L.LatLngExpression[]
+          ], {
+            color: 'red',
+            fillColor: 'red',
+            fillOpacity: 0.2,
+            weight: 2
+          }).addTo(map);
+          
+          zoneLayerRef.current = inversePolygon;
+          
+          // Show toast notification
+          toast({
+            title: "Zone dessinée",
+            description: "Zone définie avec succès. Vous pouvez l'enregistrer.",
+          });
+        }
+      });
+      
       mapRef.current = map;
       playersLayerRef.current = playersLayer;
       
@@ -132,7 +242,7 @@ export default function GameMap({ players, polygonCoordinates }: GameMapProps) {
         zoneLayerRef.current = null;
       }
     };
-  }, [hasGeolocation, userPosition]);
+  }, [hasGeolocation, userPosition, isDrawingMode, isModerator]);
   
   // Fonctions de zoom
   const handleZoomIn = () => {
@@ -294,6 +404,60 @@ export default function GameMap({ players, polygonCoordinates }: GameMapProps) {
     );
   }
   
+  // Function to handle saving the drawn zone
+  const handleSaveZone = () => {
+    if (hasDrawnPolygon && drawnPolygon.length > 0 && onZoneDrawn) {
+      onZoneDrawn(drawnPolygon);
+      toast({
+        title: "Zone enregistrée",
+        description: "La zone de jeu a été enregistrée avec succès.",
+      });
+      
+      // Reset drawing state
+      setIsDrawing(false);
+      setHasDrawnPolygon(false);
+    }
+  };
+  
+  // Function to start drawing mode
+  const handleStartDrawing = () => {
+    setIsDrawing(true);
+    
+    if (mapRef.current && drawnItemsRef.current) {
+      // Clear previous drawings
+      drawnItemsRef.current.clearLayers();
+      
+      // Remove any existing zone highlight
+      if (zoneLayerRef.current) {
+        zoneLayerRef.current.remove();
+        zoneLayerRef.current = null;
+      }
+      
+      // Enable drawing
+      if (mapRef.current) {
+        // Trigger the polygon drawing tool programmatically
+        new L.Draw.Polygon(mapRef.current as any).enable();
+      }
+    }
+  };
+  
+  // Function to cancel drawing
+  const handleCancelDrawing = () => {
+    setIsDrawing(false);
+    setHasDrawnPolygon(false);
+    
+    if (mapRef.current && drawnItemsRef.current) {
+      // Clear drawings
+      drawnItemsRef.current.clearLayers();
+      
+      // Remove zone highlight
+      if (zoneLayerRef.current) {
+        zoneLayerRef.current.remove();
+        zoneLayerRef.current = null;
+      }
+    }
+  };
+
   // Rendu normal de la carte avec géolocalisation activée
   return (
     <div className="relative h-full w-full">
@@ -342,6 +506,90 @@ export default function GameMap({ players, polygonCoordinates }: GameMapProps) {
       {userPosition && (
         <div className="absolute bottom-4 right-4 z-10 bg-background/80 backdrop-blur-sm rounded-md px-2 py-1 text-xs">
           Votre position: {userPosition.latitude.toFixed(6)}, {userPosition.longitude.toFixed(6)}
+        </div>
+      )}
+      
+      {/* Zone Drawing Controls (only for moderator) */}
+      {isModerator && isDrawingMode && (
+        <div className="absolute top-4 right-4 z-20">
+          <div className="bg-background/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-border">
+            <div className="flex flex-col gap-2">
+              {!isDrawing && !hasDrawnPolygon ? (
+                <>
+                  <div className="text-center mb-1">
+                    <Badge variant="outline" className="mb-2">
+                      <Edit className="w-3 h-3 mr-1" />
+                      <span>Mode dessin de zone</span>
+                    </Badge>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Dessinez une zone sur la carte pour définir la zone de jeu autorisée
+                    </p>
+                  </div>
+                  <Button 
+                    size="sm"
+                    onClick={handleStartDrawing}
+                    className="flex items-center gap-1"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Commencer à dessiner</span>
+                  </Button>
+                </>
+              ) : hasDrawnPolygon ? (
+                <>
+                  <div className="text-center mb-1">
+                    <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 mb-2">
+                      <Check className="w-3 h-3 mr-1" />
+                      <span>Zone dessinée</span>
+                    </Badge>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      L'extérieur de la zone est surligné en rouge
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      size="sm"
+                      variant="destructive"
+                      onClick={handleCancelDrawing}
+                      className="flex items-center justify-center gap-1"
+                    >
+                      <X className="w-3 h-3" />
+                      <span>Annuler</span>
+                    </Button>
+                    <Button 
+                      size="sm"
+                      variant="default"
+                      onClick={handleSaveZone}
+                      className="flex items-center justify-center gap-1"
+                    >
+                      <Save className="w-3 h-3" />
+                      <span>Enregistrer</span>
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-center mb-1">
+                    <Badge variant="outline" className="mb-2 animate-pulse">
+                      <Edit className="w-3 h-3 mr-1" />
+                      <span>Dessin en cours...</span>
+                    </Badge>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Cliquez sur la carte pour ajouter des points, double-cliquez pour terminer
+                    </p>
+                  </div>
+                  <Button 
+                    size="sm"
+                    variant="destructive"
+                    onClick={handleCancelDrawing}
+                    className="flex items-center gap-1"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Annuler le dessin</span>
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
