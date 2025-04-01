@@ -118,14 +118,16 @@ export default function GameMap({
       // Create layer for players
       const playersLayer = L.layerGroup().addTo(map);
       
-      // Ajouter un marqueur pour la position de l'utilisateur
+      // Ajouter un marqueur pour la position de l'utilisateur avec le style moderne
       const userIcon = L.divIcon({
         className: 'custom-div-icon',
-        html: `<div class="marker-pin bg-blue-500 dark:bg-blue-600 shadow-lg pulse-blue flex items-center justify-center text-white rounded-full w-8 h-8 border-2 border-white dark:border-gray-800">
-                <span>📍</span>
+        html: `<div class="marker-pin shadow-lg pulse-blue flex items-center justify-center rounded-full w-9 h-9 border-2 border-white dark:border-gray-800"
+                 style="background: radial-gradient(circle, #60a5fa 0%, #3b82f6 70%, #2563eb 100%); 
+                        box-shadow: 0 0 0 rgba(59, 130, 246, 0.5); 
+                        animation: pulse 1.5s infinite;">
                </div>`,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
       });
       
       L.marker([userPosition.latitude, userPosition.longitude], { icon: userIcon })
@@ -304,15 +306,33 @@ export default function GameMap({
         const isWolf = player.role === "Loup";
         const playerColor = getPlayerColor(player.id);
         
-        // Style adapté au thème (clair/sombre)
+        // Créer des points modernes avec dégradés de la couleur du joueur
+        // et une forme légèrement différente selon le rôle
+        let lighterColor = playerColor;
+        let darkerColor = playerColor;
+        
+        // Fonction pour éclaircir et assombrir les couleurs
+        const lightenColor = (color: string, percent: number): string => {
+          const num = parseInt(color.replace("#", ""), 16),
+                amt = Math.round(2.55 * percent),
+                R = (num >> 16) + amt,
+                G = (num >> 8 & 0x00FF) + amt,
+                B = (num & 0x0000FF) + amt;
+          return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1);
+        };
+        
+        lighterColor = lightenColor(playerColor, 20);
+        darkerColor = lightenColor(playerColor, -20);
+        
+        // Style adapté au thème (clair/sombre) avec dégradé moderne
         const icon = L.divIcon({
           className: 'custom-div-icon',
-          html: `<div class="marker-pin shadow-lg flex items-center justify-center text-white rounded-full w-8 h-8 border-2 border-white dark:border-gray-800"
-                      style="background-color: ${playerColor}">
-                  <span>${isWolf ? '🐺' : '🐭'}</span>
+          html: `<div class="marker-pin shadow-lg flex items-center justify-center rounded-full w-9 h-9 border-2 border-white dark:border-gray-800"
+                      style="background: radial-gradient(circle, ${lighterColor} 0%, ${darkerColor} 100%); 
+                             ${isWolf ? 'clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);' : 'border-radius: 50%;'}">
                  </div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16]
+          iconSize: [36, 36],
+          iconAnchor: [18, 18]
         });
         
         const marker = L.marker(

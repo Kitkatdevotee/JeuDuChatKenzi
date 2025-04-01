@@ -23,6 +23,18 @@ const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${win
 
 console.log("WebSocket URL:", WS_URL);
 
+// Fonction pour obtenir la couleur d'un joueur en fonction de son ID
+const getPlayerColor = (id: number): string => {
+  const PLAYER_COLORS = [
+    "#ff7e5f", "#feb47b", "#ffae4a", "#f7c59f", 
+    "#9be7ff", "#66e0ff", "#32a1ff", "#0055ff",
+    "#b2fab4", "#85ef8f", "#5ae361", "#38c938",
+    "#d783ff", "#ad54ff", "#8429ff", "#6c0aef",
+    "#ff77a8", "#ff4d94", "#ff1d79", "#e5005e"
+  ];
+  return PLAYER_COLORS[id % PLAYER_COLORS.length];
+};
+
 export default function Game() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -320,7 +332,15 @@ export default function Game() {
                 <PopoverTrigger asChild>
                   <div className="flex items-center gap-1 text-xs px-3 py-1.5 bg-muted/90 backdrop-blur-sm rounded-full shadow-md cursor-pointer hover:bg-muted/100 transition-colors">
                     <span>{playerRole === "Loup" ? "🐺" : "🐭"}</span>
-                    <span className="font-medium max-w-[100px] truncate">{playerName}</span>
+                    <span 
+                      className="font-medium max-w-[100px] truncate"
+                      style={{ 
+                        color: getPlayerColor(parseInt(playerId || "0")),
+                        textShadow: '0px 0px 1px rgba(0,0,0,0.2)'
+                      }}
+                    >
+                      {playerName}
+                    </span>
                     {isModerator && (
                       <span className="ml-1 text-amber-500">
                         <Crown className="h-3 w-3 inline-block" />
