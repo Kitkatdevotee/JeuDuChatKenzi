@@ -16,11 +16,11 @@
     touch-action: manipulation;
   }
 
-  /* Format portrait 1920x1080 forcé même sur desktop */
+  /* Format portrait 1080x1920 forcé même sur desktop */
   #root {
     @apply mx-auto;
-    width: 608px; /* Ratio 16:9 pour 1080px de largeur */
-    height: 1080px;
+    width: 1080px; /* Largeur exacte de 1080px */
+    height: 1920px;
     max-height: 100vh;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
     position: relative;
@@ -47,19 +47,20 @@
 @layer components {
   /* Composants pour interface mobile */
   .mobile-panel {
-    @apply fixed bottom-0 left-0 right-0 p-4 rounded-t-lg z-10;
+    @apply fixed bottom-0 left-0 right-0 p-6 rounded-t-lg z-10;
     @apply bg-background/95 backdrop-blur-sm border-t border-border shadow-lg;
-    max-width: 608px;
+    max-width: 1080px;
     margin: 0 auto;
     width: 100%;
   }
 
   .player-list {
-    @apply absolute top-4 right-4 p-3 rounded-lg z-10;
+    @apply absolute top-8 right-8 p-5 rounded-lg z-10;
     @apply bg-background/90 backdrop-blur-sm border border-border shadow-md;
-    max-height: calc(100vh - 8rem);
+    max-height: calc(100vh - 12rem);
     overflow-y: auto;
-    max-width: min(85vw, 18rem);
+    max-width: 320px;
+    font-size: 120%;
   }
   
   /* Style pour la carte avec support du thème sombre par défaut */

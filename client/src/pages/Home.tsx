@@ -85,11 +85,11 @@ export default function Home() {
       {/* Bouton de changement de thème */}
       <ThemeToggle />
       
-      <footer className="mt-6 text-center text-xs flex flex-col items-center space-y-1 pb-4">
-        <div className="kitmars-credit font-bold tracking-wider pulse-red">
+      <footer className="mt-6 text-center flex flex-col items-center space-y-2 pb-6">
+        <div className="kitmars-credit font-bold tracking-wider pulse-red text-lg">
           KitMars studio
         </div>
-        <p className="text-muted-foreground">Version 1.0 &copy; 2025</p>
+        <p className="text-muted-foreground text-xs">Version 1.0 &copy; 2025</p>
       </footer>
     </div>
   );
