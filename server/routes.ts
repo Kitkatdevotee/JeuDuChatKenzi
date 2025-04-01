@@ -9,44 +9,21 @@ import { WebSocketServer } from 'ws';
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
-  // Set up WebSocket for real-time updates
-  const wss = new WebSocketServer({ server: httpServer });
-  
-  // Send updates to all connected clients
-  const broadcastUpdate = (data: any) => {
-    wss.clients.forEach(client => {
-      if (client.readyState === 1) { // WebSocket.OPEN
-        client.send(JSON.stringify(data));
-      }
-    });
-  };
-
-  // WebSocket connection handler
-  wss.on('connection', (ws) => {
-    console.log('Client connected');
-    
-    // Send current game state to new connection
-    const sendInitialState = async () => {
-      const players = await storage.getPlayers();
-      const gameSession = await storage.getGameSession();
-      const gameZones = await storage.getGameZones();
-      
-      ws.send(JSON.stringify({
-        type: 'INIT',
-        data: {
-          players,
-          gameSession,
-          gameZones
-        }
-      }));
-    };
-    
-    sendInitialState();
-    
-    ws.on('close', () => {
-      console.log('Client disconnected');
-    });
+  // Set up WebSocket for real-time updates (disabled for now to check basic app functionality)
+  /*
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: "/" 
   });
+  */
+  // Use a dummy client list for now
+  const dummyClients = new Set();
+  
+  // Send updates to all connected clients (temporarily disabled)
+  const broadcastUpdate = (data: any) => {
+    // Disabled for now - will be re-enabled once WebSockets work
+    console.log("Would broadcast:", data.type);
+  };
 
   // === Player Routes ===
   

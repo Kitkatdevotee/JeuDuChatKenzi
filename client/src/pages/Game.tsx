@@ -10,8 +10,10 @@ import useGame from "@/hooks/useGame";
 import { Coordinate, Player, GameSession } from "@shared/schema";
 
 // Define the WebSocket URL relative to the current location
-// Use the same host but ensure it's pointing to the correct path
-const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
+// For Replit, we use the same protocol and host
+const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}/`;
+
+console.log("WebSocket URL:", WS_URL);
 
 export default function Game() {
   const [, navigate] = useLocation();
@@ -35,63 +37,11 @@ export default function Game() {
       return;
     }
     
-    // Initialize WebSocket connection
-    const ws = new WebSocket(WS_URL);
+    // WebSocket functionality temporarily disabled for basic functionality testing
+    console.log("WebSocket functionality disabled for testing basic app functionality");
     
-    ws.onopen = () => {
-      console.log("WebSocket Connected");
-    };
-    
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      
-      switch (data.type) {
-        case 'INIT':
-          setPlayers(data.data.players);
-          setGameSession(data.data.gameSession);
-          if (data.data.gameZones.length > 0) {
-            // We just use the first zone for simplicity
-            const zoneCoords = JSON.parse(data.data.gameZones[0].coordinates);
-            setPolygonCoordinates(zoneCoords);
-          }
-          break;
-        case 'PLAYER_JOINED':
-          setPlayers(prev => [...prev, data.data]);
-          break;
-        case 'PLAYER_MOVED':
-          setPlayers(prev => 
-            prev.map(p => p.id === data.data.id ? data.data : p)
-          );
-          break;
-        case 'ZONE_CREATED':
-          const coordinates = JSON.parse(data.data.coordinates);
-          setPolygonCoordinates(coordinates);
-          break;
-        case 'GAME_STATE_CHANGED':
-          setGameSession(data.data);
-          setGameRunning(data.data.isRunning);
-          break;
-      }
-    };
-    
-    ws.onerror = (error) => {
-      console.error("WebSocket Error:", error);
-      toast({
-        title: "Erreur de connexion",
-        description: "Impossible de se connecter au serveur.",
-        variant: "destructive"
-      });
-    };
-    
-    ws.onclose = () => {
-      console.log("WebSocket Disconnected");
-    };
-    
-    // Clean up WebSocket on component unmount
-    return () => {
-      ws.close();
-    };
-  }, [playerId, navigate, toast, setPlayers, setPolygonCoordinates, setGameRunning, setGameSession]);
+    // We'll use React Query for data fetching instead
+  }, [playerId, navigate]);
   
   // Fetch initial data
   const { isLoading: isLoadingPlayers } = useQuery({
